@@ -1,0 +1,440 @@
+/* ──────────────────────────────────────────────────────────────
+   invitation.css — §VI. The verb.
+
+   A short letter, a single email input styled as a handwritten
+   line on paper, a typography-not-a-box submit button. Success
+   (wired in 6c) flips the form to hidden and reveals a hanko
+   stamp + mono receipt line. Error (also 6c) wobbles the local
+   baseline ink via feTurbulence baseFrequency ramp.
+
+   Composition is vertical, LEFT-aligned, narrow-column — this
+   reads as a letter, not a marketing hero. Centered composition
+   was considered and rejected; it would anchor §VI as a CTA
+   poster, exactly the voice the monograph is avoiding.
+
+   Paper grain is heavier here than elsewhere on the page, scoped
+   to the section via ::before. Page-wide grain is Step 7's call
+   (see repo-state.md). The heavier grain is the reader's
+   perception of the letter being on slightly thicker stock — a
+   letter in the hand vs. an ambient backdrop.
+
+   Red discipline per learning #30 — the hanko is the page's
+   SECOND and final red moment. The error text is --ink-sumi-60,
+   not red; a failure-state red would be a third appearance and
+   dilute the stamp's earning. The wobble + mono copy carry the
+   failure signal on their own.
+
+   Layout class (learning #39): .invitation--sent on the section
+   drives the form→confirmation flip. Not an ambient attribute,
+   not a form DOM state (:valid etc.) — a class the JS explicitly
+   adds on its happy path, so short-circuit branches can't leave
+   the page in a half-success state.
+   ────────────────────────────────────────────────────────── */
+
+.invitation {
+  position: relative;
+  min-height: 80svh;
+  padding-block: clamp(6rem, 14vh, 10rem);
+
+  /* Vertical composition: letter at the top; comfortable gap
+     down to the form; form mid-column. Narrow-column, left-
+     aligned so this reads as a handwritten note, not a hero. */
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3rem, 8vh, 5rem);
+
+  /* New stacking context so the ::before grain's multiply
+     blend stays contained to this section and doesn't darken
+     §V's baseline cream above or §VII's rule below. */
+  isolation: isolate;
+}
+
+/* Heavier paper grain, scoped to §VI. Inline SVG filter via
+   data URL so no network request. stitchTiles tiles the noise
+   seamlessly; 220px tile size is paper-fibre scale (smaller
+   reads as digital dither, larger reads as decorative texture).
+   mix-blend-mode: multiply darkens existing pixels the way ink
+   dries unevenly on textured paper — not a grey film painted
+   on top. opacity 0.12 is the heavier-than-page-wide setting;
+   Step 7 will set the page-wide baseline (likely ~0.06). */
+.invitation::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10  0 0 0 0 0.08  0 0 0 0 0.07  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
+  background-size: 220px 220px;
+  opacity: 0.12;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Content sits above the grain. Every direct child gets
+   z-index 1 — the ::before sits at z-index 0 inside the
+   isolation context. */
+.invitation > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Letter ────────────────────────────────────────────────
+   Authored visible; no scroll reveal (see §V rationale). Lede
+   scale, not display — this reads aloud, not announced. Line
+   breaks are authored per <span class="...__letter-line"> so
+   the three statements never reflow into a single paragraph. */
+.invitation__letter {
+  font-family: var(--font-display);
+  font-size: var(--type-lede);
+  line-height: var(--lh-normal); /* 1.5 — letters breathe */
+  font-variation-settings: "opsz" 20, "wght" 360;
+  color: var(--ink-sumi);
+  max-width: var(--measure-narrow); /* ~38ch — intimate column */
+  margin: 0;
+}
+
+.invitation__letter-line {
+  display: block;
+}
+
+/* ─── Stage: form + confirmation occupy the same grid cell ──
+   Both children are assigned grid-row 1 / grid-column 1 so
+   they stack. When visibility flips, the layout does not pop
+   because the cell is sized by whichever child is present.
+   --measure-normal is slightly wider than the letter so the
+   email line reads as a continuation of the writing surface
+   rather than a cramped inset. */
+.invitation__stage {
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: var(--measure-normal); /* ~62ch */
+}
+
+.invitation__form,
+.invitation__confirmation {
+  grid-row: 1;
+  grid-column: 1;
+}
+
+/* Confirmation latent by default — in the DOM so grid auto-
+   sizing accounts for it, but invisible + non-interactive.
+   visibility: hidden (not display: none) keeps it participating
+   in layout. Transitions are CSS-driven (quiet fade); the
+   stamp's "press" motion is GSAP-driven in 6c per learning
+   #28 (two-glyph-pass + back.out overshoot). */
+.invitation__confirmation {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--dur-breath) var(--ease-washi);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3); /* 1rem between stamp and receipt */
+  align-items: flex-start;
+}
+
+/* ─── Success layout class — the whole flip ────────────────
+   JS (6c) adds .invitation--sent after a successful submit.
+   Form fades out quick; confirmation fades in patient-breath.
+   Asymmetric durations because the exit is acknowledgement of
+   the user's action (brisk) while the entry is the ritual
+   signal (longer). */
+.invitation--sent .invitation__form {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--dur-quick) var(--ease-ink);
+}
+
+.invitation--sent .invitation__confirmation {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* ─── Form ──────────────────────────────────────────────────
+   Vertical stack: field, then actions (submit + inline error
+   line). Generous internal gap so the submit sits clearly
+   below the writing line without feeling stapled to it. */
+.invitation__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5); /* 2rem */
+  transition: opacity var(--dur-breath) var(--ease-washi);
+}
+
+/* ─── Field: input + baseline ──────────────────────────────
+   The input + baseline together make one handwriting line. The
+   field's color is what currentColor inherits to the baseline's
+   stroke; on :focus-within (or when the input has content),
+   the color darkens ash→sumi and the baseline darkens with it.
+   :has(:not(:placeholder-shown)) means the darkened state
+   PERSISTS after the reader has typed an email, even when the
+   field loses focus — handwriting stays on the page after the
+   pen lifts. */
+.invitation__field {
+  position: relative;
+  display: block;
+  color: var(--ink-ash);
+  transition: color var(--dur-breath) var(--ease-ink);
+}
+
+.invitation__field:focus-within,
+.invitation__field:has(.invitation__email:not(:placeholder-shown)) {
+  color: var(--ink-sumi);
+}
+
+/* ─── Email input ──────────────────────────────────────────
+   The line IS the input. NO border, NO background, NO padding
+   that would imply a field rectangle. Text color is always
+   --ink-sumi (unchanged by focus state); placeholder handles
+   the ash default and fades on focus. Letter-spacing is 0 so
+   email addresses read as typed (tight tracking would mangle
+   @, -, . recognition). */
+.invitation__email {
+  display: block;
+  width: 100%;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0.15em 0;
+  font-family: var(--font-display);
+  font-size: var(--type-lede);
+  line-height: 1.2;
+  font-variation-settings: "opsz" 20, "wght" 380;
+  color: var(--ink-sumi);
+  letter-spacing: 0;
+}
+
+/* Placeholder voice: italic + slightly lighter wght to read as
+   "provisional example," not "label." Firefox defaults
+   placeholder opacity to 0.54 which would double-dim the ash
+   color — force to 1 so --ink-ash is the source of truth. */
+.invitation__email::placeholder {
+  color: var(--ink-ash);
+  opacity: 1;
+  font-style: italic;
+  font-variation-settings: "opsz" 20, "wght" 340;
+  transition: opacity var(--dur-breath) var(--ease-washi);
+}
+
+/* Placeholder fades on focus — the reader's intent is typing,
+   not re-reading the hint. Not display:none so the placeholder
+   returns if the reader blurs with an empty field. */
+.invitation__email:focus::placeholder {
+  opacity: 0;
+}
+
+/* Kill the browser default focus ring — we drive focus
+   indication via the baseline darkening (:focus-within on the
+   parent field). This is the ONLY focus-outline override on
+   the page; earned because the field itself has no visible
+   bounds for a ring to attach to. reset.css's :focus-visible
+   rule (1px sumi outline, 4px offset) would otherwise paint a
+   rectangle around the input's text-box — exactly the "form
+   chrome creep" §VI is guarding against. */
+.invitation__email:focus,
+.invitation__email:focus-visible {
+  outline: none;
+}
+
+/* ─── Baseline ─────────────────────────────────────────────
+   Hair-thin line stretched to the field width. stroke is
+   currentColor so the parent field's color-transition drives
+   it. height 3px with overflow: visible gives the feTurbulence
+   displacement (scale 1.4) headroom to bleed without being
+   clipped by the svg box. negative margin-top pulls the line
+   up into the input's descender zone so descenders (j, y, p,
+   g, q) dip below the ruled line as they do in real
+   handwriting — this value will likely want in-browser tuning
+   during 6d (caveat below). */
+.invitation__baseline {
+  display: block;
+  width: 100%;
+  /* height: 4px matches the SVG viewBox height of 4 units so
+     scaling is 1:1 vertically and stroke-width in viewBox units
+     renders as honest CSS pixels. Earlier 3px value left the
+     stroke sub-pixel and effectively invisible. */
+  height: 4px;
+  overflow: visible;
+  /* −0.22em pulls the baseline up so its visual line sits
+     approximately at the typographic baseline of the input
+     text at --type-lede. Tuned via 6d with the debug highlight
+     — this value places the line at the descender ruling. */
+  margin-top: -0.22em;
+}
+
+/* ─── Actions: submit + inline error ───────────────────────
+   Submit left-aligned (consistent with the writing surface).
+   Error below the submit in meta voice; a min-height reserves
+   one line so the appearance of error text does not shift the
+   section's height. */
+.invitation__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2); /* 0.5rem */
+  align-items: flex-start;
+}
+
+/* ─── Submit ───────────────────────────────────────────────
+   Typography, not a box. "Send" in Fraunces, em-dash as a
+   quiet bridge in ash, 送る in Shippori Mincho via the nested
+   .ja class. reset.css already handles the <button> chrome
+   (no background, no border, cursor:pointer). Hover + focus
+   both paint a 1px ink underline as the interactive tell —
+   same visual grammar a hyperlink would use. */
+.invitation__submit {
+  font-family: var(--font-display);
+  font-size: var(--type-lede);
+  font-variation-settings: "opsz" 20, "wght" 380;
+  color: var(--ink-sumi);
+  letter-spacing: var(--ls-tight);
+  line-height: 1;
+
+  /* Baseline-align "Send", the em-dash, and the ja glyph so
+     they sit on one typographic line despite being three
+     separate spans with different font stacks. */
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35em;
+
+  transition: color var(--dur-quick) var(--ease-ink);
+}
+
+.invitation__submit:hover {
+  text-decoration: underline solid currentColor 1px;
+  text-underline-offset: 0.45em;
+}
+
+/* Keyboard-focus tell — ink underline on the button's text.
+   Overrides reset.css's global :focus-visible 1px outline;
+   the outline would paint a rectangle around the text-box,
+   which would be form chrome. The underline is typographic,
+   not geometric. */
+.invitation__submit:focus-visible {
+  outline: none;
+  text-decoration: underline solid var(--ink-sumi) 1px;
+  text-underline-offset: 0.45em;
+}
+
+.invitation__submit-dash {
+  color: var(--ink-ash); /* quiet bridge, not emphasis */
+}
+
+.invitation__submit-ja {
+  /* Shippori Mincho is non-variable; clear font-variation
+     settings inherited from the submit's Fraunces rules. */
+  font-variation-settings: normal;
+  font-weight: 400;
+}
+
+/* ─── Error line ───────────────────────────────────────────
+   Empty by default — 6c writes textContent here. .meta gives
+   it JetBrains Mono / uppercase / letter-spacing / ash color.
+   Color override to --ink-sumi-60 (NOT red) per learning #30:
+   red appears exactly twice on the page, both on hanko
+   stamps. The wobble + copy ("please check the email address
+   and try again") carry the failure signal; color doesn't
+   need to carry it too. min-height reserves one line so the
+   error's appearance doesn't shift the layout below. */
+.invitation__error {
+  color: var(--ink-sumi-60);
+  min-height: 1.2em;
+  margin: 0;
+}
+
+/* ─── Hanko stamp ──────────────────────────────────────────
+   REUSES §III's vocabulary verbatim. Same #hanko-frame
+   symbol, same base + echo structure, same ink-wash +
+   ink-wash-echo filter pair. currentColor drives the ink:
+   --ink-hanko on the .invitation__hanko element makes both
+   passes stamp in red. Learning #30 — red earns its moment
+   through COLOR, not through extra filter craft or motion
+   vocabulary. DO NOT add a glow, a gradient fill, a pulse,
+   a longer settle.
+
+   Size: slightly smaller than §III's peak (4.75rem) because
+   §III's stamps live in a row of four in their gen headers
+   and scale with the row; §VI's stamp is alone in its cell,
+   so a smaller clamp still reads as equal-weight to §III's.
+   Learning #33 notes smaller stamps want MORE overshoot; the
+   handoff's back.out(2) (vs §III's back.out(1.2)) is the
+   calibrated answer. */
+.invitation__hanko {
+  width: clamp(3rem, 4vw, 4rem);
+  height: clamp(3rem, 4vw, 4rem);
+  overflow: visible;
+  flex-shrink: 0;
+  color: var(--ink-hanko);
+}
+
+.invitation__hanko-frame--base {
+  fill: currentColor;
+  opacity: 0.95;
+  filter: url(#ink-wash);
+}
+
+.invitation__hanko-frame--echo {
+  fill: currentColor;
+  opacity: 0.28;
+  transform: translate(1.2px, 0.8px);
+  transform-origin: center;
+  filter: url(#ink-wash-echo);
+}
+
+.invitation__hanko-char {
+  font-family: var(--font-japanese);
+  font-weight: 500;
+  font-size: 60px;
+  fill: currentColor;
+  text-anchor: middle;
+  dominant-baseline: alphabetic;
+}
+
+.invitation__hanko-char--base {
+  opacity: 0.95;
+  filter: url(#ink-wash);
+}
+
+.invitation__hanko-char--echo {
+  opacity: 0.28;
+  transform: translate(1.2px, 0.8px);
+  transform-origin: center;
+  filter: url(#ink-wash-echo);
+}
+
+/* ─── Receipt line ─────────────────────────────────────────
+   .meta utility gives mono, uppercase, tracked, ash. Width
+   capped to --measure-narrow so the receipt doesn't run wider
+   than the confirmation block reads as — a tight signoff, not
+   a paragraph. */
+.invitation__receipt {
+  max-width: var(--measure-narrow);
+  margin: 0;
+}
+
+/* ─── Reduced motion ───────────────────────────────────────
+   No section-specific override needed here. The success
+   transition uses --dur-breath / --dur-quick tokens, which
+   collapse to 1ms inside tokens.css's prefers-reduced-motion
+   block — so .invitation--sent snaps form→confirmation with
+   no fade. 6c's GSAP stamp settle will short-circuit in JS
+   (same pattern as other sections' reduced-motion branches).
+   Paper grain is a static image; it stays. */
+
+/* ─── Narrow viewport ──────────────────────────────────────
+   Below ~720px, the letter's --measure-narrow still works
+   (character-bounded), but the stage's --measure-normal cell
+   would overflow a very narrow viewport. Let the stage fill
+   the column so the email line gets the full writing width.
+   The hanko's clamp floor takes over automatically. */
+@media (max-width: 720px) {
+  .invitation {
+    padding-block: clamp(4rem, 10vh, 7rem);
+    gap: clamp(2rem, 6vh, 3.5rem);
+  }
+
+  .invitation__stage {
+    max-width: 100%;
+  }
+}

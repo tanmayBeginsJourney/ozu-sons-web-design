@@ -29,6 +29,7 @@ import { initPlace } from "./modules/place.js";
 import { initLineage } from "./modules/lineage.js";
 import { initForge } from "./modules/forge.js";
 import { initPhilosophy } from "./modules/philosophy.js";
+import { initInvitation } from "./modules/invitation.js";
 
 initMotion();
 
@@ -49,4 +50,5 @@ initPlace();
 initLineage();
 initForge();
 initPhilosophy();
+initInvitation();
 initThreshold();

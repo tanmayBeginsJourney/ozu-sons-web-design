@@ -201,29 +201,132 @@ Flagged follow-ups (not blocking):
 - SplitText does NOT re-split on viewport resize. Shared gap with §I/§II/§III; not §V-specific. Document for Step 7.
 - §V 6d + 6e complete. Tests A, B, C code-level verified; D, E, F, H flagged for user-in-browser during Step 7 polish (same posture as prior sections). G (keyboard/a11y) passes trivially — §V has no interactive elements. I deferred per the ritual (after §VI).
 
-## §VI — THE INVITATION   [NOT YET BUILT]
+## §VI — THE INVITATION   [BUILT + APPROVED]
 
-Framed as a letter:
+Static + motion both approved. 6d + 6e complete. The verb. §V was the held thought; §VI is the only section on the page with meaningful user interaction. Framed as a letter to the reader inviting them to commission a blade. Form-submission is treated as letter-writing ritual, not a UX moment — the hanko press + mono confirmation is the acknowledgement that the letter has been received, not a toast notification.
+
+### Copy (locked)
+
+Letter prose — verbatim, hard line breaks preserved:
 
     "To commission an Ozu blade, write to us.
      The current waitlist is eighteen months.
      We read every letter."
 
-- Single email input styled as handwritten line on paper:
-  - Hair-thin sumi-ink baseline rule with feTurbulence displacement (hand-drawn, not machine-ruled).
-  - NO border, NO box.
-  - Placeholder "e.g., you@domain" in `--ink-ash`, fades on focus.
-  - On focus, baseline darkens from ash to sumi.
-- Submit button reads "Send — 送る" (Fraunces + Shippori Mincho, no box, just type).
-- Keyboard-accessible (Enter triggers submit, visible focus outline styled as ink underline on button text).
-- CRITICAL — two confirmation signals, not one:
-  1. Hanko stamp presses down in `--ink-hanko` red (the SECOND and FINAL red moment on the page). Scales 1.4 → 1.0 with `back.out(2)` rotational settle.
-  2. Text line below in mono: "received — no. 042 · we will write back within a week".
-- Error states (invalid email): baseline ink ruling wobbles ~400ms, mono error message appears.
-- Paper grain is slightly heavier in this section.
-- Unique: form-submission treated as letter-writing ritual.
+Submit button: "Send — 送る" (Fraunces + Shippori Mincho, no box, just type).
+Receipt line (on success): "received — no. 042 · we will write back within a week".
+Error line (on invalid submit): "please check the email address and try again".
 
-Patterns to reuse (from prior sections): two-glyph-pass for the stamp (learning #28), `<use>`-mask for the animated baseline (learning #29 + #34), "earned once" paused timeline for confirmation animation (learning #41), layout-class pattern for success state (learning #39).
+### Composition
+
+- Vertical, LEFT-aligned, narrow-column (`max-width: var(--measure-normal)`). Centered composition was considered and rejected — it would anchor §VI as a CTA poster, exactly the voice the monograph is avoiding.
+- Letter at the top; comfortable gap down to the form; form mid-column. `display: flex; flex-direction: column; gap: clamp(3rem, 8vh, 5rem)`.
+- `min-height: 80svh`, `padding-block: clamp(6rem, 14vh, 10rem)` — a breath before §VII, without feeling like a separate screen.
+- Isolation context (`isolation: isolate`) so the heavier paper grain's multiply blend stays contained to this section and doesn't darken §V's baseline cream above or §VII's rule below.
+
+### Letter prose — authored visible (no reveal)
+
+The letter renders at full opacity on load. Deliberate decision at 6a: §V earned the page's "held sentence" reveal; §VI's attention must go to the INTERACTION (the field, the press, the receipt), not to another text reveal. Adding a reveal here would over-determine the section — learnings #7 and #30 argued against it.
+
+### The handwritten baseline — EXECUTION (see also learning #44)
+
+The email field has no border, no box, no container chrome. The line IS the input. Implementation:
+
+- Bare `<input type="email">` with no framing, type set to `--type-lede`, transparent background, `color: var(--ink-sumi)`, placeholder in `--ink-ash`.
+- Immediately below the input: an inline `<svg class="invitation__baseline">` with viewBox `0 0 600 4`, `preserveAspectRatio="none"`, containing a single `<line>` with `stroke="currentColor"`, `stroke-width="2"` in viewBox units, and a local `filter="url(#invitation-baseline-ink)"`.
+- The filter is LOCAL to the §VI SVG — NOT `#ink-wash` from the top-level defs — so the error-path `baseFrequency` ramp (see below) can animate without disturbing §II's kanji or §III's hankos that reference the global filters.
+- `filterUnits="userSpaceOnUse"` with explicit viewBox bounds (`x="-5" y="-6" width="610" height="16"`) is LOAD-BEARING. The default `objectBoundingBox` collapses to an empty rect on `<line>` sources because `<line>` has zero geometric height, rendering the filter output invisible. Do NOT switch back to the percentage-based region; see learning #44.
+- SVG CSS `height: 4px` matches viewBox height exactly so scaling is 1:1 vertically and `stroke-width: 2` renders as honest 2 CSS pixels. `stroke-width: 1` on a squished viewBox renders sub-pixel and effectively vanishes (also learning #44). Do NOT combine `vector-effect="non-scaling-stroke"` with the displacement filter — the stroke bypasses the filter's coordinate space and disappears.
+- `margin-top: -0.22em` pulls the baseline up so its visual line sits approximately at the typographic baseline of the input text. Tuned in 6d with a debug highlight overlay; p/j/y descenders dip correctly below.
+- Baseline's `color` is inherited. CSS rule: `.invitation__field:focus-within .invitation__baseline { color: var(--ink-sumi) }` else `var(--ink-ash)`. `.invitation__field:has(.invitation__email:not(:placeholder-shown)) .invitation__baseline { color: var(--ink-sumi) }` keeps the darkened state after content is typed and field blurs.
+- `aria-hidden="true"` on the SVG — it's decorative ink; the input's own semantics carry the label.
+
+### Submit button — typography, not a box
+
+"Send — 送る" rendered as `<button type="submit">`. Fraunces for "Send —", Shippori Mincho for "送る", inline. `background: transparent`, no border, no box-shadow. Hover and `:focus-visible` show a thin `border-bottom` on the text itself (the "ink underline" from the brief), NOT a browser default outline. Focus override uses `outline: none` + the underline pseudo-rule. Cursor `pointer`, `color: var(--ink-sumi)`, slight opacity shift on hover.
+
+Enter key from the input submits natively (standard HTML form + `<button type="submit">` — no custom keypress handler). Verified click-submit via automation; Enter-submit is native browser behavior and untestable through the browser MCP tool.
+
+### Hanko stamp — reuses §III's vocabulary verbatim
+
+On success (submit with valid email), the form fades out via the `.invitation--sent` layout class and a hanko stamp presses in. Execution:
+
+- Reuses `<symbol id="hanko-frame">` from the top-level SVG defs. Do NOT author a second seal shape — this is the same symbol §III's four generation hankos reference.
+- Two `<use>` passes on the frame (base + echo with different `#ink-wash` / `#ink-wash-echo` filter seeds, learning #28). Plus a Shippori Mincho 受 ("received") kanji inside, also base + echo.
+- Kanji choice 受 is the studio's mark of receipt — deliberately different from §III's 源 / 誠 / 鉄 / 刃 per learning #30's "unique per hanko" rule. 受 is a single character, not a signature, consistent with the kanji-as-studio-stamp convention.
+- Color via CSS: the hanko wrapper sets `color: var(--ink-hanko)` and the frame + kanji inherit via `fill: currentColor`. This is the SECOND and FINAL red moment on the page.
+
+### Confirmation timeline — EXECUTION (learning #41, paused + earned-once)
+
+Built once in `initInvitation`, played once on successful submit. Idempotent — re-submits after success are silent no-ops.
+
+- Two glyph passes (base + echo frame, base + echo kanji) animate simultaneously from `{ scale: FROM_SCALE, rotation: ROT_FROM, opacity: 0, transformOrigin: "50% 50%" }` to `{ scale: 1, rotation: 0, opacity: 1, ease: HANKO_EASE, duration: HANKO_DURATION }`.
+- Echo layer's static CSS offset (`--hanko-echo-x: 1.2`, `--hanko-echo-y: 0.8`) is authored in CSS; the tween lands at those values so the "pressed twice, slightly misaligned" read is preserved through the landing frame. If the echo offset constants ever drift from CSS, `clearProps` on timeline complete will snap the echo back.
+- Receipt line (`<p class="invitation__receipt meta">`) fades in and drifts up 4px a beat AFTER the stamp lands (`RECEIPT_OFFSET 0.25s`, `RECEIPT_DURATION 0.6s`). Parallelizing would collapse the two signals into one visual event — exactly what the two-signal rule guards against.
+- Tunables retuned from §III per learning #33 ("smaller stamp → more overshoot"): `FROM_SCALE 1.4`, `ROT_FROM -8°` (§III uses -6°), `HANKO_EASE back.out(2)` (§III uses `back.out(1.2)`), `HANKO_DURATION 0.85s` (§III uses 0.75s). The motion SHAPE is §III's vocabulary; only the numeric constants account for the smaller render size so the felt landing is proportional.
+
+### Submit handler — contract and simulated latency
+
+- `preventDefault()`, validate `emailInput.value.trim()` against a permissive regex (`/^[^\s@]+@[^\s@]+\.[^\s@]+$/`) — intentionally NOT RFC-compliant. Returns "invalid", "rejected" (already submitted), or "accepted".
+- On "accepted": `setTimeout(... SIMULATED_LATENCY 420ms ...)` then inside the same tick: add `.invitation--sent` class AND `confirmationTl.play()`. Both inside one `setTimeout` so the CSS form-fade and the GSAP stamp-press are visually synchronous. Separating them produced a one-frame "loading artifact" blink during 6d.
+- 420ms is narrative, not real. The form has no endpoint; this is Step 7's call when / if a real submission target lands. If wired, the `setTimeout` body becomes the `fetch(...).then(...)` body.
+- Idempotent `submitted` flag in closure. `gsap.play()` on an already-completed timeline is a no-op, but the early return also prevents the CSS class flip from thrashing.
+
+### Error path — ink recoils, not a banner
+
+On "invalid" submit: the baseline wobbles and a mono error line appears. Execution:
+
+- `gsap.to(baselineTurbulence, { attr: { baseFrequency: 2.8 }, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1, onComplete: () => baselineTurbulence.setAttribute("baseFrequency", "0.9") })` — ~400ms total, ramps frequency from the resting 0.9 up to 2.8 and back. `0.9 → 1.5` barely reads; `0.9 → 4+` tips from "ink recoil" into "TV static." 2.8 is the "line was startled" zone.
+- The explicit `setAttribute` on complete restores the literal resting value — GSAP yoyo can leave `baseFrequency` at `0.8999998…` on the return leg, which would have a second wobble start from an off-by-ε value.
+- In-flight wobble is killed on rapid re-submits (`killTweensOf(baselineTurbulence)` via a retained `wobbleTween` ref) so overlapping tweens don't fight on the same attribute.
+- Error line `<p class="invitation__error meta" aria-live="polite">` uses `.meta` voice (uppercase mono, letter-spaced, `var(--ink-sumi-60)` — NOT red). A red error would be the page's third red appearance and would dilute the hanko's earning. `aria-live="polite"` announces the text change to assistive tech without competing with the visual wobble for attention.
+- `emailInput.addEventListener("input", clearError)` — correction is the reset, not another button. Input event fires on paste / autofill / programmatic clears too, all correct triggers.
+- Only the baseline wobbles; NOT the whole form. The ink "recoils" rather than chrome popping in — keeps the ink metaphor that the baseline has been the field's voice all along.
+
+### Paper grain — heavier, section-scoped
+
+`.invitation::before` renders a paper-grain layer via inline-SVG-`feTurbulence` data URL: `baseFrequency 1.4`, `numOctaves 2`, stitchTiles, `mix-blend-mode: multiply`, `opacity 0.12`. 220px tile size reads as paper fiber (smaller → digital dither, larger → decorative texture). Heavier than the page-wide baseline (Step 7 decides the global value, likely ~0.06). The perception is of a letter on slightly thicker stock — a letter in the hand, not an ambient backdrop.
+
+Narrow viewport (≤640px): grain opacity drops to 0.08 so the tile doesn't read as visually loud on smaller devices where it fills more of the visual field.
+
+### Layout class — success state (learning #39)
+
+`.invitation--sent` added to the section by JS on the happy path only. CSS keys:
+
+- `.invitation__form` → `opacity: 0; visibility: hidden; pointer-events: none` (fades out via `transition: opacity var(--dur-breath) var(--ease-washi)`).
+- `.invitation__confirmation` → `opacity: 1; visibility: visible` (both stamp and receipt line visible, the timeline having written their final values).
+
+Until `.invitation--sent` is set, `.invitation__confirmation` is `opacity: 0; visibility: hidden` via plain CSS — NOT via `html.js-pending`. The form is authored visible; the confirmation is CSS-hidden. See FOUC gate note below.
+
+### Reduced-motion branch
+
+- Submit handler stays wired. Email validation runs. On "invalid": `showError()` writes the error line; NO baseline wobble (`motion.prefersReducedMotion` short-circuits `wobbleBaseline()` before it builds a tween). On "accepted": `.invitation--sent` flips; CSS transitions are collapsed to 1ms via `tokens.css`'s prefers-reduced-motion block, so the success state SNAPS in without the `back.out` settle.
+- Semantic confirmation and semantic error both reach the user; only the "press" and "recoil" ceremonies are skipped.
+
+### FOUC gate participation — NONE
+
+§VI does NOT participate in the `html.js-pending` FOUC gate. The letter and form are authored visible (progressive enhancement, learning #23 — the form functions even if JS never runs). The confirmation block is hidden by plain CSS (`.invitation__confirmation { opacity: 0; visibility: hidden }`), not by the pending-gate. Nothing for `threshold.js`'s gate removal to coordinate with here — but `initInvitation` is still slotted BEFORE `initThreshold` in `main.js` for init-order consistency (any future FOUC-gated targets would need it to be earlier; no cost to adding the call now).
+
+### Progressive enhancement posture (learning #23)
+
+- `<form class="invitation__form" novalidate>` with a real `<input type="email" required>` and `<button type="submit">`. If JS never loads, the browser submits the form natively to the same URL (which Vite serves as the SPA shell); not a functional submission but also not a broken page. `novalidate` disables the browser's native validity bubble so the custom error UX can own the invalid-email path without racing against "please match the requested format" popups.
+- The confirmation block is present in the DOM. Without JS, it remains `opacity: 0; visibility: hidden` per CSS — it's authored for the success state but never unhid, which is the correct no-JS state (the form submits natively; the page reloads; the reader is not mid-ritual).
+
+### Flagged follow-ups (for Step 7)
+
+- **Enter-key submission** not verifiable via the browser MCP automation (the tool's `browser_press_key` doesn't trigger implicit form submission — tool limitation, not a code defect). The markup + button type is correct for native Enter submission. User should verify manually: tab to the field, type an email, press Enter. If it fails, investigate at the tool level first before touching code.
+- **Mobile viewport layout** (iPhone SE / 375–414px) not verified — `browser_resize` didn't honor the width change in this environment. "Send — 送る" wrap at narrow widths is a concern to confirm manually. If wrap occurs between "Send" and "—", the fix is `white-space: nowrap` on the button; if it occurs between "—" and "送る", accept it or add a `display: inline-block` on the kanji.
+- **`prefers-reduced-motion`** branch code-level verified only. User should re-run in DevTools → Rendering → "Emulate CSS media feature prefers-reduced-motion" before Step 7 critique to confirm the snap-in success state and the non-wobbling error path both read as intended.
+- **Wobble punch** — `WOBBLE_PEAK 2.8` is handoff default; if the recoil reads under-powered in Step 7 review, the next lever is a concurrent `feDisplacementMap` scale tween (`1.4 → 4 → 1.4`). Documented in `invitation.js` tunables block. Do NOT add it now — one dial, tune first.
+- **Baseline vertical alignment** `margin-top: -0.22em` landed at the descender baseline. If Step 7 review wants the line at the main baseline instead (letters sitting ON the line rather than descending through it), the value goes toward `-0.30em` to `-0.35em`.
+- **§VI 6d + 6e complete.** Tests A, B (rest-state), C (focus), D (error path), E (error clear), F (success path), G (hanko vocabulary reuse) code-level + automation-verified. Tests covering mobile, reduced-motion, Enter-submit flagged above for in-browser manual verification during Step 7.
+
+### Critical execution notes (for future editors)
+
+- **Do NOT add red anywhere else in §VI.** Error text is `--ink-sumi-60`, not red. Learning #30 is the page's red discipline — one instance in §III, one here, total two.
+- **Do NOT enrich the hanko press.** No glow, no longer settle, no extra pulse, no different ease. The motion vocabulary matches §III by design (learning #30). `back.out(2)` + 0.85s is the final call.
+- **Do NOT remove `filterUnits="userSpaceOnUse"` from the baseline filter.** The whole line will vanish — see learning #44.
+- **Do NOT gate the confirmation with `html.js-pending`.** Progressive enhancement (learning #23) requires the form to work without JS; gating confirmation via the JS FOUC class would leave non-JS users at the unhid-confirmation state on a failed submit.
 
 ## §VII — THE COLOPHON (not a footer)   [NOT YET BUILT]
 

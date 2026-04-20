@@ -1,10 +1,10 @@
 ═══════════════════════════════════════════════════════════════
-  HANDOFF — OZU & SONS · §VI (NEXT TASK)
+  HANDOFF — OZU & SONS · §VII (NEXT TASK)
 ═══════════════════════════════════════════════════════════════
 
-You are inheriting a single-page website build in progress. §I–§V are built + approved. §VI is next.
+You are inheriting a single-page website build in progress. §I–§VI are built + approved. §VII is next — the final section of the monograph.
 
-This handoff is DELIBERATELY TIGHT. Deeper context lives in `./docs/` and is indexed at the bottom. Do NOT read all docs linearly at session start — the handoff gives you everything needed to start §VI. Consult docs when a specific question arises.
+This handoff is DELIBERATELY TIGHT. Deeper context lives in `./docs/` and is indexed at the bottom. Do NOT read all docs linearly at session start — the handoff gives you everything needed to start §VII. Consult docs when a specific question arises.
 
 ═══════════════════════════════════════════════════════════════
   PROJECT
@@ -33,8 +33,8 @@ Rules:
 §III LINEAGE        BUILT + APPROVED  (static, motion, 6d, 6e)
 §IV  FORGE          BUILT + APPROVED  (full motion + film-cut hold, 6d, 6e)
 §V   PHILOSOPHY     BUILT + APPROVED  (static, motion, scroll-interruptible reveal, 6d, 6e)
-§VI  INVITATION     ◄ NEXT TASK — not yet built
-§VII COLOPHON       not yet built
+§VI  INVITATION     BUILT + APPROVED  (static, motion, submit + confirmation + error, 6d, 6e)
+§VII COLOPHON       ◄ NEXT TASK — not yet built
 Step 7 (polish)     deferred
 Step 8 (critique)   deferred
 
@@ -44,115 +44,107 @@ Non-negotiable locked decisions — DO NOT re-open:
   NO Tailwind. NO 3D. NO canvas.
 • §IV path-morph → asset-crossfade pivot — shipped, not re-openable.       → docs/architecture.md §IV, docs/learnings.md #35–#38
 • §V zero-ambient + no-exit + scroll-interruptible reveal — shipped.        → docs/architecture.md §V, docs/learnings.md #42–#43
+• §VI two-signal confirmation + red discipline + hanko vocabulary reuse.   → docs/architecture.md §VI, docs/learnings.md #30, #41, #44
 • Hybrid A+B pacing for all text reveals.                                  → docs/learnings.md #21 + #31
 • ScrollSmoother progressive enhancement via html[data-smoother="on"].     → docs/learnings.md #1
 • FOUC gate via html.js-pending class.                                     → docs/learnings.md #15 + #24
 • Register every ScrollTrigger via motion.js `registerTrigger()`.          → docs/learnings.md #13
 • The red `--ink-hanko` appears EXACTLY twice on the page: §III gen 4
-  hanko (first) and §VI confirmation stamp (second + final).               → docs/learnings.md #30
+  hanko (first) and §VI confirmation stamp (second + final). §VII gets
+  no red whatsoever.                                                       → docs/learnings.md #30
 
 ═══════════════════════════════════════════════════════════════
-  §VI — THE INVITATION (the task)
+  §VII — THE COLOPHON (the task)
 ═══════════════════════════════════════════════════════════════
-The verb. §V was the held thought; §VI is the only interactive section on the page. Framed as a letter to the reader inviting them to commission a blade.
+Not a footer. A colophon — a book's closing typographic note about how the object was made. §VI was the interactive verb; §VII is the page turning closed.
 
-Letter copy (verbatim, line break preserved):
+Copy (verbatim, line break preserved):
 
-    "To commission an Ozu blade, write to us.
-     The current waitlist is eighteen months.
-     We read every letter."
+    "Set in Fraunces and Shippori Mincho B1.
+     Composed in 2026 for Ozu & Sons, Sakai, Ōsaka."
 
-Form: a SINGLE email input styled as a handwritten line on paper. No border, no box, no container chrome. The line IS the input.
-• Hair-thin sumi-ink baseline rule with feTurbulence displacement — hand-drawn, not machine-ruled.
-• Placeholder "e.g., you@domain" in `--ink-ash`, fades on focus.
-• On focus, baseline darkens from `--ink-ash` to `--ink-sumi`.
+Composition:
+• Small 終 character centered below the two text lines, faint. 終 means "end" / "finis" — the traditional Japanese cinematic/editorial closing mark. Faint, not emphatic. Shippori Mincho, `--ink-ash` or lighter, small type scale.
+• One hair-thin sumi-ink rule ABOVE the text, 30% of the column width, centered. The rule DRAWS IN via DrawSVGPlugin as `<line>` or `<path>` — left-to-centre + right-to-centre meeting in the middle. Exactly ONE draw, once, on scroll-in.
+• Composition is centered — this is the one section where centered is correct, because a colophon is a closing gesture, not a letter or a call. §VI was narrow-column left-aligned to read as a hand; §VII reads as printed matter's final page.
 
-Submit: the button reads "Send — 送る" (Fraunces + Shippori Mincho, no box, just type). Enter key triggers submit. Focus is visible as an ink underline on the button's text, NOT a browser default outline.
+Strict EXCLUSIONS — do NOT re-add:
+• The "no blade was photographed" meta-wink was CUT after critique. Do NOT re-add it. Not a joke, not an Easter egg, not as hover text. The cut was deliberate.
+• No red. The page's two red moments are earned in §III and §VI (learning #30). §VII is pure sumi/ash.
+• No interactive affordance. §VI owned interaction. §VII is a closing note; nothing is clickable.
+• No social links, no email, no "made by," no build timestamp, no copyright. The copy IS the colophon. Anything else is footer creep.
+• No ambient motion. §VII inherits §V's absence discipline (learning #43) — the rule draws in once, full stop.
 
-CRITICAL — success is TWO signals, not one:
-  1. A hanko stamp presses down in `--ink-hanko` red. This is the SECOND and FINAL red moment on the page (first was §III's generation-4 hanko). Scales 1.4 → 1.0 with `back.out(2)` rotational settle. REUSE §III's exact filter vocabulary — two-glyph-pass (base + echo with different filter seeds, learning #28), same `url(#ink-wash)` + `url(#ink-wash-echo)`. Do NOT give it richer filter craft or extra motion beyond §III's — learning #30, "don't reward specialness twice."
-  2. Mono text line below: "received — no. 042 · we will write back within a week" — matches the `--meta` mono voice used across the page.
-
-Error state (invalid email): the baseline ink ruling WOBBLES ~400ms via feTurbulence frequency ramp, and a mono error message appears below. Keep the ink metaphor — the line "recoils" rather than a banner popping in. Do NOT shake the whole form; only the baseline itself.
-
-Paper grain: slightly heavier in this section than elsewhere (the letter is meant to read as being on slightly thicker stock). Scope the heavier grain to `.invitation` only — do NOT crank page-wide grain yet. Step 7 owns the page-wide grain decision.
-
-Unique: form-submission treated as letter-writing ritual, not as a UX moment. The hanko press + mono confirmation is the acknowledgement that the letter has been received, not a toast notification.
+Unique: §VII is the ONLY section that uses DrawSVGPlugin. It was kept imported in `motion.js` through §I–§VI specifically for this draw-in (repo-state.md already flags this). No other section's vocabulary includes a draw-in — this is §VII's signature, the way §I had the idle-reactive breathing and §V had the scroll-interruptible reveal.
 
 ═══════════════════════════════════════════════════════════════
   PATTERNS TO REUSE (do not re-invent)
 ═══════════════════════════════════════════════════════════════
-• Two-glyph-pass for the stamp                                  → learning #28 + §III's hanko-frame `<symbol>` already in index.html defs. REUSE THE SYMBOL — do not author a second seal shape.
-• `<use>`-mask for the animated baseline                        → learnings #29 + #34. The hand-drawn baseline is the same pattern as §III's brush silhouette: one authored path + two `<use>` copies + filter seeds.
-• "Earned once" paused timeline for confirmation animation       → learning #41. The stamp + confirmation line play ONCE on submit, do NOT replay on re-focus or re-submit attempts.
-• Layout-class pattern for success state                        → learning #39. JS adds `.invitation--sent` on the section AFTER successful submit. CSS keys success-state styling (form hidden, stamp + confirmation visible) to THAT class. Do NOT gate on an ambient attribute or form DOM state.
-• Hybrid A+B pacing IF letter prose reveals word/line-by-line    → learnings #21 + #31 (editorial prose constants).
+• DrawSVGPlugin — already imported in `motion.js`, never used in a built section. Documented in repo-state.md. First and only use is §VII's rule. See GSAP docs or `./mcps/plugin-context7-plugin-context7` if you need the DrawSVG API surface.
+• "Earned once" paused timeline — learning #41. The rule draws in ONCE on scroll-in, does NOT replay on scroll-back. Same pattern §IV and §VI already use.
+• Font-ready gate for any SplitText work — learning #26. Two short lines probably don't need SplitText (the text is authored visible, likely with no reveal animation). Decide in 6a whether any reveal is happening at all.
+• ScrollTrigger at `start: "top 78%"` or `"top 85%"` — trigger point for "reader has just started to see the section." Consult §II/§III/§V for prior-art start points before picking a value.
+• Absence list as editorial structure — learning #43 (§V's governing rule). If a reveal or micro-motion feels tempting, SUBTRACT INSTEAD (learning #7).
+• `html.js-pending` FOUC gate coordination — learning #24. If §VII has any hidden-start targets (e.g. the rule at `drawSVG: "0% 50%"` for the left-to-centre draw), `initColophon` must slot BEFORE `initThreshold` in `main.js`, just like §II–§VI do. If it has NO hidden targets (text authored visible, rule progressively enhanced), it can slot anywhere — though keeping the "everything before initThreshold" pattern is safer.
 
 ═══════════════════════════════════════════════════════════════
   FIRST ACTION
 ═══════════════════════════════════════════════════════════════
-§VI is the first section on the page with MEANINGFUL INTERACTION. The dangerous failure modes are different from §V's:
-  (a) Form chrome creeping in — borders, boxes, shadows, "sharp" focus rings. The line IS the input; the input is not on a line.
-  (b) The hanko earning its own filter craft or motion vocabulary. It must reuse §III's verbatim. Red is earned by COLOR alone (learning #30).
-  (c) Collapsing success into ONE signal. The stamp AND the mono line is intentional: the press is the acknowledgement, the text is the contract.
+§VII is a small section, but the failure modes at "the page's closing beat" are specific:
+  (a) Over-determining it — giving the rule multiple motions, or animating the 終 character, or adding a "fade-up" on the text. The rule draw-in is the ONE motion. The text and 終 are authored visible.
+  (b) Footer creep — treating §VII as a footer and unconsciously adding links, credits, a year, a sitemap. It is a COLOPHON. The copy is locked.
+  (c) Reintroducing red. The page's red is DONE. Even 終 is not red; it's `--ink-ash` or similar.
+  (d) Breaking §V's no-exit discipline carried forward — §VII should also have no exit animation. It is the last thing; there is nothing past it.
 
-1. Read these seven learnings from `./docs/learnings.md` BEFORE writing any §VI code:
-   • #7  — over-determination is the biggest risk (still applies)
-   • #23 — progressive enhancement (matters MORE for §VI — HTML must deliver a functional form even if JS fails)
-   • #24 — FOUC gate coordination (§VI's init must slot BEFORE initThreshold)
-   • #28 — two-glyph-pass hand-pressed ink irregularity (THE hanko recipe)
-   • #29 + #34 — `<use>`-mask baseline pattern (applies to the form line)
-   • #30 — don't reward specialness twice (hanko = COLOR only, no extra craft)
-   • #39 — layout-class-driven state (success state keys off `.invitation--sent`, not ambient)
-   • #41 — paused-timeline + earned-once (the confirmation sequence)
+1. Read these five learnings from `./docs/learnings.md` BEFORE writing any §VII code:
+   • #7  — over-determination is the biggest risk (still applies, most relevant here)
+   • #23 — progressive enhancement (text authored visible; rule must render in a usable state if JS fails)
+   • #24 — FOUC gate coordination (init order if §VII has any hidden targets)
+   • #30 — don't reward specialness twice (§VII gets NO red, 終 stays ash)
+   • #41 — paused-timeline + earned-once (the rule draw-in plays once)
+   • #43 — absence as editorial structure (carry §V's discipline forward)
 
-2. Restate §VI's character in your own words, ONE paragraph, covering:
-   (a) Why §VI is framed as a letter rather than a "contact form" — what the voice asks of the copy and the input treatment.
-   (b) Why success is TWO signals (press + mono line) and why collapsing to one would be wrong.
-   (c) Why the hanko MUST reuse §III's filter vocabulary verbatim and what happens if it doesn't.
+2. Restate §VII's character in your own words, ONE paragraph, covering:
+   (a) Why §VII is a colophon, not a footer — what that asks of the copy, the composition, and the restraint.
+   (b) Why the rule draws in (and why nothing else moves) — what the single ink line is doing that justifies its one motion.
+   (c) Why §VII gets NO red and what would happen if 終 were rendered in `--ink-hanko`.
 
-3. §VI 6a PRE-CODE REVIEW — name every constraint AND every open decision. §VI has more open 6a questions than prior sections because the letter / form / submit-response interactions aren't fully specified. Surface them:
-   • Letter copy verbatim (exactly as above).
-   • Form — single email input, no border/box, placeholder "e.g., you@domain" in `--ink-ash`, hand-drawn baseline with feTurbulence displacement (learnings #29/#34), baseline darkens ash→sumi on focus.
-   • Submit button — "Send — 送る", Fraunces + Shippori Mincho, no box, Enter key triggers, focus shows as an ink underline on the button text.
-   • Success — two signals: (1) hanko stamp `1.4 → 1.0` with `back.out(2)` rotational settle, `--ink-hanko` red, two-glyph-pass (learning #28), REUSE existing `<symbol id="hanko-frame">`; (2) mono text "received — no. 042 · we will write back within a week".
-   • Error — baseline wobbles ~400ms via feTurbulence ramp, mono error message appears.
-   • Paper grain heavier, scoped to `.invitation`.
-   • Reduced-motion — stamp still appears (it's semantic confirmation, not decoration), but without the back.out settle — snap to final scale. Baseline does NOT wobble on error; error message still appears.
-   • FOUC gate — `initInvitation` slots BEFORE `initThreshold`. Letter + form are authored VISIBLE (progressive enhancement, learning #23) — the form must function even if JS never runs.
-   • State machine — at minimum: idle / focused / submitting / success / error. The success transition must be idempotent (re-submits after success do nothing).
-   • Init-order implication — `main.js` order becomes `initPlace → initLineage → initForge → initPhilosophy → initInvitation → initThreshold`.
+3. §VII 6a PRE-CODE REVIEW — name every constraint AND every open decision. §VII has FEWER open questions than §VI, but a few:
+   • Copy verbatim (exactly as above).
+   • Composition — centered, column-width narrow, rule 30% column width centered above text, 終 below text, small.
+   • Rule DRAW-IN — DrawSVGPlugin, two segments meeting at centre, once on scroll-in via paused timeline.
+   • Typography — text at a small-to-mid editorial scale (probably `--type-meta` or `--type-small`, NOT lede). 終 smaller still, in Shippori Mincho.
+   • FOUC gate — if the rule starts at `drawSVG: "50% 50%"` (zero length), synchronous `gsap.set` in init, and `initColophon` slots before `initThreshold`. If you choose the rule authored visible and then animating from progressive-enhancement perspective, skip the gate.
+   • Reduced-motion — no draw-in, rule renders fully drawn immediately. Text and 終 are identical across branches (they're authored visible in all paths).
+   • Section status — no interactive elements. No short-circuit branches needed beyond reduced-motion.
 
    OPEN decisions to raise as 6a questions (one at a time, per the communication rules):
-   • Does the letter prose reveal on scroll-in (like §II lines) or is it authored visible with no reveal? Argue for ONE — don't ask the user which.
-   • Where does focus land on first load? Probably NOT the input (auto-focus would be aggressive for a monograph). Recommend no auto-focus.
-   • "no. 042" — is this a fixed number (matches §I's "No. 042") or incremented per submit? Recommend fixed for narrative continuity.
-   • What's the submit's network behaviour on a static site? (Recommend: prevent default, simulate success after a short delay — the form is narrative, not transactional. The user may wire a real endpoint in Step 7.)
+   • Does the text reveal on scroll-in (SplitText word-by-word) or authored visible with NO reveal? Recommend authored visible — §VI's two signals already own "something appears on this page." Adding a text reveal here would be a third micro-reveal moment after the monograph has already closed its argument. The rule draw-in is the only motion §VII needs.
+   • Does 終 reveal separately (e.g. fade in after the rule lands)? Recommend authored visible. Animating 終 would add a second motion to a section whose whole job is to be quiet.
+   • Does the rule draw left-to-right in a single pass, OR split (left-to-centre + right-to-centre simultaneously)? The handoff brief specifies split; confirm it reads better before coding. Split draw feels more "two pens meeting" / "book-plate rule" than single-direction.
+   • Rule ink treatment — plain `stroke` or filtered with `#ink-wash` for the hand-drawn look that §II/§III use? Recommend `#ink-wash`. Plain strokes would be the first machine-ruled line on the page and would visually contradict the ink vocabulary.
 
-4. Propose §VI 6c implementation order (or confirm the recommended order below). Get user confirmation before writing any §VI motion/interaction code:
-   (i)    Static markup + typography/layout CSS (letter prose, form layout, baseline ruling as inline SVG with filter, submit button, hidden hanko + confirmation markup as final DOM so it's progressive-enhancement ready). REDUCED-MOTION CSS fallback here too.
-   (ii)   Focus/blur baseline darkening (pure CSS state driven by `:focus-within`).
-   (iii)  Letter prose reveal on scroll-in, if chosen (paused timeline + ScrollTrigger at `top 78%`).
-   (iv)   Submit handler — prevent default, validate email, on success add `.invitation--sent` to the section, play the confirmation timeline.
-   (v)    Confirmation timeline — hanko stamp press (two-glyph-pass, back.out(2)) + mono line fade. Built paused; played once via the submit handler (learning #41).
-   (vi)   Error path — baseline wobble (feTurbulence `baseFrequency` ramp via gsap) + mono error message. Clears on next input event.
+4. Propose §VII 6c implementation order (or confirm the recommended order below). Get user confirmation before writing any §VII motion code:
+   (i)   Static markup + typography/layout CSS (text, rule SVG, 終 char). REDUCED-MOTION CSS fallback here too — the rule is authored fully-drawn in the reduced-motion path via `stroke-dasharray` or CSS equivalent so the visual hierarchy stays intact.
+   (ii)  Rule draw-in — DrawSVGPlugin, paused timeline, ScrollTrigger at `"top 78%"` or similar, `once: true`, plays once on enter, plays from "50% 50%" to "0% 100%" (meaning: from zero-length at centre out to full-length). Verify DrawSVG syntax in the context7 MCP before writing.
 
-   Do NOT build all six in one pass. Minimum splits: (i) alone for 6b; (ii)+(iv)+(v) as one 6c pass; (vi) as a second 6c pass; (iii) as a third if we elect to do it.
+   Do NOT build both in one pass. Minimum split: (i) alone for 6b; (ii) as 6c.
 
-5. §VI 6b STATIC first — markup + typography/layout CSS + the reduced-motion CSS fallback. Wait for user approval. THEN write 6c.
+5. §VII 6b STATIC first — markup + typography/layout CSS + the reduced-motion CSS fallback. Wait for user approval. THEN write 6c.
 
-6. After 6c approval → 6d → 6e. Then §VII, following the same Step 6 ritual (docs/step-6-ritual.md). After §VII: Step 7 polish, then Step 8 critique.
+6. After 6c approval → 6d → 6e. Then Step 7 polish (all seven sections together), then Step 8 critique.
 
 ═══════════════════════════════════════════════════════════════
   DOCS INDEX — consult on demand, do NOT pre-read linearly
 ═══════════════════════════════════════════════════════════════
 ./docs/design-constitution.md  — Aesthetic, palette, typography, motion philosophy, forbidden list.
 ./docs/tech-stack.md           — Build tools, libraries, plugins, imports. All locked.
-./docs/architecture.md         — All 7 sections in detail. §I–§V (built, full execution notes).
-                                 §VI brief is mirrored here in more depth; §VII brief + Step 7/8.
-./docs/learnings.md            — 43 numbered learnings from predecessor agents. For §VI: read
-                                 #7, #23, #24, #28, #29, #30, #34, #39, #41 up front.
-                                 Grep others on demand. Also #42–#43 (§V's additions) for context.
+./docs/architecture.md         — All 7 sections in detail. §I–§VI (built, full execution notes).
+                                 §VII brief mirrored here + Step 7/8 briefs.
+./docs/learnings.md            — 44 numbered learnings from predecessor agents. For §VII: read
+                                 #7, #23, #24, #30, #41, #43 up front. Grep others on demand.
+                                 Also #44 (§VI's filterUnits lesson) — may apply if §VII's rule
+                                 is a `<line>` with any filter, though it probably uses a `<path>`.
 ./docs/repo-state.md           — File manifest, init order, console traces, open infrastructure
                                  gaps. Consult before editing any file you haven't touched.
 ./docs/step-6-ritual.md        — 6a / 6b / 6c / 6d / 6e + Tests A–I.
@@ -163,14 +155,16 @@ Rules for doc consultation:
 • If you're about to type a magic number (color, size, duration), check `design-constitution.md`
   / `tokens.css` first (learning #12).
 
-Handoff maintenance (for whoever finishes §VI):
-• When §VI is BUILT + APPROVED, move its brief out of the §VI block above and into
-  `docs/architecture.md` under its `[NOT YET BUILT]` placeholder, following the same format
-  §IV and §V use (execution notes, flagged follow-ups, section status + console trace).
-• Then rewrite THIS handoff's §VI block + FIRST ACTION + BEGIN to target §VII.
-• Add a "§VI motion agent" learnings block to `docs/learnings.md` if new patterns emerged.
-• Update `repo-state.md`'s file manifest + console traces + §VI status line.
-• Update `main.js` description in `repo-state.md` to reflect that `initInvitation` is wired in.
+Handoff maintenance (for whoever finishes §VII):
+• When §VII is BUILT + APPROVED, promote its brief into `docs/architecture.md` under its
+  `[NOT YET BUILT]` placeholder, following the same format §V and §VI use (execution notes,
+  flagged follow-ups, section status + console trace).
+• Add new learnings to `docs/learnings.md` if new patterns emerge (e.g. DrawSVG gotchas, rule
+  composition rules).
+• Update `repo-state.md`'s file manifest + console traces + §VII status line.
+• Update `main.js` description in `repo-state.md` to reflect `initColophon` being wired in.
+• Then rewrite THIS handoff to target STEP 7 (the polish pass). Step 7 will need a different
+  handoff shape — it's a cross-section pass, not a single-section build.
 • Goal: keep `handoff.md` under ~200 lines and scoped to the CURRENT task only.
 
 ═══════════════════════════════════════════════════════════════
@@ -178,27 +172,27 @@ Handoff maintenance (for whoever finishes §VI):
 ═══════════════════════════════════════════════════════════════
 Your first message should:
 
-1. Briefly confirm you've read this handoff. Confirm §I–§V are NOT up for re-opening — especially §IV's crossfade-vs-morph pivot, §V's zero-ambient + no-exit discipline (learning #43), and the scroll-interruptible reveal pattern (learning #42). If you find yourself wanting to re-tune §V's OVERLAP or fast-forward timing after loading the page, resist; that's Step 7 polish work.
+1. Briefly confirm you've read this handoff. Confirm §I–§VI are NOT up for re-opening — especially §IV's crossfade-vs-morph pivot, §V's zero-ambient + no-exit discipline, §VI's two-signal confirmation and red discipline, and learning #44's `filterUnits="userSpaceOnUse"` rule. If you find yourself wanting to re-tune any previous section after loading the page, resist; that's Step 7 polish work.
 
-2. Read the nine flagged learnings (#7, #23, #24, #28, #29, #30, #34, #39, #41) from `./docs/learnings.md`.
+2. Read the six flagged learnings (#7, #23, #24, #30, #41, #43) from `./docs/learnings.md`.
 
 3. Execute FIRST ACTION steps 2–4:
-   • Restate §VI's character in your own words (one paragraph, three points).
-   • Walk §VI 6a pre-code review — name every constraint AND surface the open questions one at a time.
-   • Propose (or confirm) the §VI 6c implementation order.
-   Get user confirmation before writing any §VI markup or code.
+   • Restate §VII's character in your own words (one paragraph, three points).
+   • Walk §VII 6a pre-code review — name every constraint AND surface the open questions one at a time.
+   • Propose (or confirm) the §VII 6c implementation order.
+   Get user confirmation before writing any §VII markup or code.
 
-4. §VI 6b STATIC first. Wait for approval. Only then write 6c.
+4. §VII 6b STATIC first. Wait for approval. Only then write 6c.
 
-5. 6c → 6d → 6e → then §VII.
+5. 6c → 6d → 6e → then Step 7 polish.
 
-Do not re-pitch the aesthetic. Do not re-decide the stack. Do not re-architect the page. Do not re-open §IV's pivot, §V's absence list, or any prior §-section decision. Those are locked. Your job is to build §VI → §VII on top of the five built sections, following the Step 6 ritual for each.
+Do not re-pitch the aesthetic. Do not re-decide the stack. Do not re-architect the page. Do not re-open §IV's pivot, §V's absence list, §VI's two-signal rule, or any prior §-section decision. Those are locked. Your job is to build §VII on top of the six built sections, following the Step 6 ritual, then hand Step 7 off clean.
 
-SINGLE MOST DANGEROUS FAILURE MODE FOR §VI: letting form chrome (borders, boxes, shadows, browser-default focus rings) creep in. The line IS the input. The button has no box. The hanko is the only visible container on success.
+SINGLE MOST DANGEROUS FAILURE MODE FOR §VII: footer creep. The copy is locked. Do not add links, credits, a year, a sitemap, a social row, or a "no blade was photographed" callback. The colophon IS the copy. The rule draw-in is the motion. 終 is the final mark. Nothing else.
 
 ═══════════════════════════════════════════════════════════════
   SANITY-CHECK QUESTION
 ═══════════════════════════════════════════════════════════════
-Answer this so the user can verify §VI has landed in your head:
+Answer this so the user can verify §VII has landed in your head:
 
-**Why is the submit-success state TWO signals (hanko press + mono confirmation line) rather than one, and why must the §VI hanko reuse §III's two-glyph-pass filter treatment + `back.out` motion vocabulary VERBATIM rather than earning a richer treatment of its own as the "final" red moment on the page?**
+**Why is the rule draw-in §VII's ONLY motion (with the text and 終 character authored visible and still) rather than earning the text a small reveal of its own to match the "something appears" pattern the rest of the page has established — and what would happen to the monograph's overall shape if §VII accumulated a second or third motion the way §IV did?**

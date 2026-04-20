@@ -1,0 +1,213 @@
+/* ──────────────────────────────────────────────────────────────
+   colophon.css — §VII. The page turning closed.
+
+   A colophon, not a footer. Composition is CENTERED here —
+   the one section where centered is correct, because a
+   colophon is a symmetrical closing gesture, not a letter or
+   a call. Two lines of small editorial copy, one hair-thin
+   ink rule above, the 終 character below as the final mark.
+   Learning #7 (over-determination) and learning #43 (absence
+   as editorial structure) are governing.
+
+   NO red — §VII stays sumi/ash (learning #30).
+   NO interactive affordance — nothing is clickable.
+   NO exit animation — §VII is the last thing on the page.
+   NO ambient motion — the rule draws in ONCE on scroll-in
+   via DrawSVG (6c); that's the section's entire motion
+   budget. Text and 終 are authored visible.
+
+   Progressive enhancement per learning #23 — the rule is
+   authored fully-drawn in the HTML. The html.js-pending
+   FOUC gate (below) hides ONLY the rule segments via opacity
+   before JS runs. 6c's synchronous gsap.set inside
+   initColophon will collapse the two segments to their
+   centre endpoints via DrawSVG and release opacity in the
+   same frame; initThreshold (last in main.js's init order)
+   then removes the gate. Reduced-motion @media override
+   unhides the rule through the gate so the full colophon is
+   visible at intended typography when JS is off OR when
+   reduced-motion is on.
+   ────────────────────────────────────────────────────────── */
+
+.colophon {
+  /* Not a full viewport — a closing note earns ~half a
+     screen, no more. Any taller and §VII starts reading as
+     "another section" rather than "the page's last page."
+     Any shorter and the rule→text→終 rhythm has nowhere to
+     breathe. */
+  min-height: 50svh;
+  padding-block: clamp(5rem, 12vh, 9rem);
+  padding-inline: var(--gutter);
+
+  /* Centered printed-matter composition. Both axes. */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  /* Proportional vertical rhythm: rule → text → 終.
+     The gap is uniform rather than asymmetric because the
+     three elements are a single composition (rule + copy +
+     seal-mark), not three separate beats. A ratio that
+     clusters rule-with-text and stands 終 off below was
+     considered and rejected — it would read as 終 being
+     "another thing" rather than part of the closing
+     lockup. */
+  gap: clamp(1.25rem, 2.6vh, 2.25rem);
+}
+
+/* ─── Rule ─────────────────────────────────────────────────
+   Roughly 30% of the narrow text column width below it, so
+   the rule reads as a printer's ruling attached to the copy
+   rather than a page-wide divider floating independently.
+   The clamp floor keeps the rule visible at mobile scale;
+   the ceiling caps absolute width so the rule never crosses
+   into "divider" territory on ultrawide displays.
+
+   Each segment's stroke passes through #ink-wash (the
+   two-pass turbulence + displacement filter defined in the
+   top-level defs and already used by §II's kanji, §III's
+   hanko characters, and §VI's hanko). A plain CSS-style
+   stroke would read as the FIRST machine-ruled line on the
+   page after six sections of ink vocabulary — visually
+   contradicting the monograph's whole typographic argument.
+   Sharing #ink-wash rather than authoring a local filter
+   keeps the ink vocabulary consistent and avoids a second
+   filter definition for a section that only needs the one
+   existing treatment. */
+.colophon__rule {
+  display: block;
+  width: clamp(5rem, 11vw, 7.5rem);
+  /* height: 2px matches the rendered stroke width we want
+     in CSS pixels. viewBox height is 1 unit and
+     preserveAspectRatio="none" stretches that to 2 CSS px;
+     a 0.6 viewBox-unit stroke then renders as ~1.2 CSS px —
+     a confident hairline that survives the #ink-wash
+     displacement without being clipped. overflow: visible
+     lets the filter's displacement bleed past the SVG box
+     instead of being cropped to a sharp rectangular edge. */
+  height: 2px;
+  overflow: visible;
+  /* currentColor inherits to both segments' strokes so the
+     rule ink is tied to the section's text color — if §VII
+     ever wants a quieter (or darker) rule, change this one
+     property rather than hunting two stroke declarations. */
+  color: var(--ink-sumi);
+}
+
+.colophon__rule-seg {
+  fill: none;
+  stroke: currentColor;
+  /* 0.6 in viewBox units → ~1.2 CSS px after the vertical
+     squish. Any thicker and the rule reads as a horizontal
+     bar rather than a printer's ruling; any thinner and the
+     displacement eats the stroke. */
+  stroke-width: 0.6;
+  stroke-linecap: butt;
+  filter: url(#ink-wash);
+}
+
+/* Pre-reveal FOUC gate (learning #15/#24).
+   Gates only the rule segments (NOT the parent SVG, NOT the
+   text, NOT 終) so:
+     (a) text and 終 render at final typography from first
+         paint — they're authored visible and never hidden.
+     (b) the SVG's layout box stays in the flow from first
+         paint — the gap rhythm between rule / text / 終 does
+         not shift when the gate is removed.
+   6c's initColophon will write the DrawSVG hidden state
+   synchronously AND release opacity inside the same frame;
+   the gate is then removed by initThreshold at the end of
+   its synchronous init (main.js's load-bearing order). */
+html.js-pending .colophon__rule-seg {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.js-pending .colophon__rule-seg {
+    opacity: 1;
+  }
+}
+
+/* ─── Copy ─────────────────────────────────────────────────
+   Two short lines, small editorial scale. Fraunces (not
+   mono) because the copy is printed-matter prose, not a UI
+   label — .meta's mono voice would read as a debugger-style
+   credit block, exactly the footer creep §VII is avoiding.
+   Sized between body floor (~16px) and meta (11px mono) via
+   a direct clamp; neither existing type token hits this
+   register, and adding a new --type-colophon token for a
+   two-line use would be over-abstraction. opsz 14 matches
+   the html default — at this size the lower optical reading
+   is correct, not display. wght 380 is a touch lighter than
+   the letter/lede weights so the closing note reads quieter
+   than §VI's opening address. */
+.colophon__text {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(0.8125rem, 1vw, 0.95rem);
+  line-height: var(--lh-normal);
+  font-variation-settings: "opsz" 14, "wght" 380;
+  letter-spacing: var(--ls-normal);
+  color: var(--ink-ash);
+  /* Narrow measure so the two lines stay as a tight block
+     rather than drifting out into a wide-column bar. The
+     rule above is sized to roughly 30% of this measure. */
+  max-width: var(--measure-narrow);
+}
+
+.colophon__text-line {
+  display: block;
+}
+
+/* ─── 終 (end mark) ────────────────────────────────────────
+   The final mark. "End" / "finis" — the traditional
+   Japanese cinematic/editorial closing character. Shippori
+   Mincho via .ja, smaller type scale than the text above,
+   and --ink-ash at reduced opacity so the mark reads as
+   faint rather than emphatic. "--ink-ash or lighter" per
+   the architecture brief: ash alone at full opacity would
+   sit at the same weight as the text; the opacity reduction
+   makes 終 read as the quiet signoff it's supposed to be,
+   not as a third beat of copy.
+
+   COLOR DISCIPLINE (learning #30) — --ink-ash, NOT
+   --ink-hanko. The page's two red moments are earned at
+   §III (living maker's seal) and §VI (user's submit-stamp);
+   a third red here would dilute both and turn the through-
+   line into a stylistic tic. Red is EXACTLY TWICE. 終 is
+   sumi-family, full stop.
+
+   No echo pass. Learning #28's two-glyph-pass technique is
+   a stamped-mark affordance earned by the hanko stamps in
+   §III and §VI. 終 is a closing mark, not a stamp — loading
+   it with extra craft would contradict the "absence as
+   editorial structure" principle (learning #43). If it
+   reads thin in 6d/6e review, raise weight before adding an
+   echo. */
+.colophon__end {
+  margin: 0;
+  font-size: clamp(1rem, 1.6vw, 1.35rem);
+  line-height: 1;
+  /* Shippori Mincho is non-variable — .ja clears
+     font-variation-settings but font-weight still applies.
+     400 is the base weight we loaded; 500 is also
+     available if in-browser review wants it heavier. */
+  font-weight: 400;
+  color: var(--ink-ash);
+  opacity: 0.7;
+}
+
+/* ─── Narrow viewport ─────────────────────────────────────
+   Composition holds at mobile: centered still reads,
+   clamp floors still rule sensible widths. The only
+   adjustment is tightening the section's vertical
+   padding and gap so §VII doesn't claim a disproportionate
+   share of a short mobile viewport. */
+@media (max-width: 720px) {
+  .colophon {
+    padding-block: clamp(3.5rem, 8vh, 6rem);
+    gap: clamp(1rem, 2vh, 1.75rem);
+  }
+}

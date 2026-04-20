@@ -412,3 +412,23 @@ The temptation to "add one thing because the canvas feels empty" is the biggest 
 Distinction from learning #40: #40 is about climax frames in scroll-pinned sequences. #43 is about whole sections in a non-pinned editorial monograph. Different scope, same discipline.
 
 Reusable for: §VII (colophon) may face the same temptation — the final rule + small 終 + credits are the whole move. If Step 7 suggests adding "one more subtle thing" to §VII, this learning says no. More generally: any "quiet" section after a loud neighbour should have its absences explicitly enumerated.
+
+---
+
+## Additions from the §VI motion agent
+
+## 44. SVG FILTERS ON `<line>` ELEMENTS REQUIRE `filterUnits="userSpaceOnUse"`
+
+§VI's email-field baseline is a `<line>` with `feTurbulence` + `feDisplacementMap` applied. First build used the filter-region pattern copied from §III's hanko stamps — `x="-2%" y="-200%" width="104%" height="500%"` on the `<filter>` element — and the line rendered completely invisible. Root cause: the default `filterUnits="objectBoundingBox"` multiplies percentage dimensions by the source element's geometric bounding box. A `<line>` is a 1D geometry: its bbox has width but **zero height** (before stroking is applied). So `y="-200%"` evaluates to `-2 × 0 = 0` and `height="500%"` evaluates to `5 × 0 = 0` — the filter region collapses to an empty rectangle, and everything drawn inside becomes invisible.
+
+Two fixes in play, pick the right one for the source element:
+
+- (a) `<path>`, `<rect>`, `<circle>`, `<polygon>` — anything with a non-degenerate 2D bbox — the default `objectBoundingBox` + percentage regions work fine. This is what §II's kanji mask and §III's hanko characters use (they're `<path>` and `<text>`). KEEP doing that for glyph-like ink effects.
+
+- (b) `<line>`, or any primitive whose bbox has a zero dimension — switch the filter to `filterUnits="userSpaceOnUse"` and express the region in explicit viewBox coordinates. §VI's baseline filter uses `filterUnits="userSpaceOnUse" x="-5" y="-6" width="610" height="16"` to get a real region around a line that's 600 wide × 0 tall in its viewBox.
+
+Symptom to diagnose quickly: filter applied, source element appears invisible, removing `filter=...` makes the stroke reappear. Don't waste time on displacement-scale tuning, `color-interpolation-filters`, or turbulence seeds — check `filterUnits` first if the source is a `<line>`.
+
+Related gotcha observed in the same build: `stroke-width="1"` on a `<line>` inside an SVG with `preserveAspectRatio="none"` and a vertical viewBox-to-CSS scale < 1 renders as a sub-pixel stroke (~0.75 CSS px) and effectively vanishes into the background. Fix: either match the SVG's CSS height to its viewBox height so scaling is 1:1 (§VI's baseline is now `height: 4px` for a viewBox height of 4), or bump stroke-width high enough to survive the squish. `vector-effect="non-scaling-stroke"` looks like a clean fix BUT interacts badly with feDisplacementMap — the stroke bypasses the filter's coordinate space and the displaced result appears as a void. Do not combine `vector-effect="non-scaling-stroke"` with a displacement filter.
+
+Reusable for: any future hand-drawn SVG ruling lines, underlines, or axis ticks — form fields, tables, charts. Keep the §VI pattern (userSpaceOnUse + honest viewBox-to-CSS scale + stroke-width in viewBox units) as the baseline for all `<line>`-based ink applications on this site.

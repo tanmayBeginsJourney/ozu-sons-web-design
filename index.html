@@ -821,6 +821,375 @@
               >
             </p>
           </section>
+
+          <!-- ─── §VI — THE INVITATION ────────────────────────────
+               The verb. §V was the held thought; §VI is the only
+               active section on the page — framed as a short letter
+               inviting the reader to commission a blade. The letter
+               is authored visible (no scroll reveal) because §V
+               earned the page's one genuine held-sentence motion
+               and §VI puts its motion budget on the success moment:
+               a hanko press + mono receipt line, played once via a
+               paused timeline (learning #41). Reading the letter
+               early also means the reader knows the contract
+               (eighteen months, we read every letter) BEFORE they
+               commit to writing.
+
+               The form is the only interactive element on the page.
+               The input has no border, no box, no container chrome —
+               the line IS the input. A hair-thin baseline with
+               local feTurbulence displacement sits under the input;
+               it darkens ash→sumi on focus (pure CSS :focus-within)
+               and wobbles on validation error (6c ramps the local
+               filter's baseFrequency). The submit button is
+               typography, not a box; focus reads as an ink underline
+               on the button's text, not an outline ring.
+
+               SUCCESS IS A LAYOUT CLASS (learning #39). JS adds
+               .invitation--sent after a valid submit; CSS keys the
+               form-hidden / stamp-visible / receipt-visible flip to
+               that class, not to an ambient attribute. The stamp
+               REUSES #hanko-frame and §III's ink-wash +
+               ink-wash-echo filter pair verbatim (learning #28).
+               Red is earned by COLOR alone (learning #30) — do NOT
+               add a glow, a longer settle, or richer filter craft.
+
+               HTML authors the FINAL structure — letter, form,
+               stamp, and receipt all live in the DOM at page load
+               (learning #23). If JS never runs, the letter reads
+               and the browser's native form validation handles the
+               email input; no-JS submit does nothing useful but
+               nothing breaks either. novalidate is set because 6c
+               wants to drive a custom error UI (baseline wobble +
+               mono message), not the browser's constraint tooltip.
+          ────────────────────────────────────────────────────── -->
+          <section
+            id="invitation"
+            class="invitation"
+            aria-labelledby="invitation-heading"
+          >
+            <h2 id="invitation-heading" class="visually-hidden">
+              The Invitation
+            </h2>
+
+            <!-- Letter: authored visible. Three short lines, each its
+                 own block so the three-statement cadence stays
+                 deliberate at every viewport — the line breaks are
+                 editorial, not reflow-determined. -->
+            <p class="invitation__letter">
+              <span class="invitation__letter-line"
+                >To commission an Ozu blade, write to us.</span
+              >
+              <span class="invitation__letter-line"
+                >The current waitlist is eighteen months.</span
+              >
+              <span class="invitation__letter-line"
+                >We read every letter.</span
+              >
+            </p>
+
+            <!-- Stage: form + confirmation share the same grid cell.
+                 Both are in the DOM at first paint. JS toggles
+                 .invitation--sent to flip which is visible; sharing
+                 a cell means the layout does not pop when success
+                 arrives. -->
+            <div class="invitation__stage">
+              <form class="invitation__form" novalidate>
+                <!-- Visually-hidden label for AT; the placeholder
+                     plays the visible-label role for sighted
+                     readers. -->
+                <label for="invitation-email" class="visually-hidden">
+                  Your email address
+                </label>
+
+                <div class="invitation__field">
+                  <input
+                    id="invitation-email"
+                    name="email"
+                    class="invitation__email"
+                    type="email"
+                    autocomplete="email"
+                    inputmode="email"
+                    spellcheck="false"
+                    placeholder="e.g., you@domain"
+                    required
+                  />
+
+                  <!-- Hand-drawn baseline under the input.
+                       preserveAspectRatio="none" stretches the line
+                       horizontally without warping it vertically.
+                       stroke is currentColor so a pure-CSS
+                       :focus-within rule on the parent darkens it
+                       ash→sumi. A LOCAL filter (not #ink-wash) so 6c
+                       can ramp baseFrequency for the error wobble
+                       without disturbing §II's kanji or §III's
+                       hanko stamps that also reference #ink-wash. -->
+                  <svg
+                    class="invitation__baseline"
+                    viewBox="0 0 600 4"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                  >
+                    <defs>
+                      <!-- filterUnits="userSpaceOnUse" is
+                           load-bearing for <line> sources. The
+                           default objectBoundingBox units
+                           multiply percentages by the element's
+                           bbox — but a <line> has zero geometric
+                           height (it's 1D before stroking), so
+                           percentage-based filter regions
+                           collapse to an empty rect and the
+                           filter output becomes invisible.
+                           userSpaceOnUse with explicit viewBox
+                           coordinates gives the filter a real
+                           region to operate in. -->
+                      <filter
+                        id="invitation-baseline-ink"
+                        filterUnits="userSpaceOnUse"
+                        x="-5"
+                        y="-6"
+                        width="610"
+                        height="16"
+                        color-interpolation-filters="sRGB"
+                      >
+                        <feTurbulence
+                          type="fractalNoise"
+                          baseFrequency="0.9"
+                          numOctaves="2"
+                          seed="9"
+                          result="baseline-noise"
+                        />
+                        <feDisplacementMap
+                          in="SourceGraphic"
+                          in2="baseline-noise"
+                          scale="1.4"
+                          xChannelSelector="R"
+                          yChannelSelector="G"
+                        />
+                      </filter>
+                    </defs>
+                    <!-- stroke-width: 2 in viewBox units. With
+                         preserveAspectRatio="none" + viewBox
+                         height 4 squished to CSS height 4px
+                         (1:1 after the height bump in
+                         invitation.css), the stroke renders as
+                         ~2 CSS px — a confident hairline that
+                         reads as an ink ruling, not a sub-pixel
+                         ghost. vector-effect is intentionally
+                         NOT used because it interacts badly
+                         with feDisplacementMap: the effect
+                         bypasses the filter's coordinate space
+                         and the displacement appears to cancel
+                         the stroke visibility entirely in
+                         Chromium. Stroke scales with viewBox
+                         instead; that's fine here because the
+                         displacement is the point. -->
+                    <line
+                      x1="0"
+                      y1="2"
+                      x2="600"
+                      y2="2"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      filter="url(#invitation-baseline-ink)"
+                    />
+                  </svg>
+                </div>
+
+                <div class="invitation__actions">
+                  <button type="submit" class="invitation__submit">
+                    Send
+                    <span class="invitation__submit-dash">—</span>
+                    <span class="ja invitation__submit-ja">送る</span>
+                  </button>
+
+                  <!-- Error line. Empty by default; 6c writes
+                       textContent here so assistive tech announces
+                       the change via aria-live. Height is reserved
+                       in CSS so the layout does not shift when the
+                       error arrives. -->
+                  <p
+                    class="invitation__error meta"
+                    aria-live="polite"
+                  ></p>
+                </div>
+              </form>
+
+              <!-- Confirmation: hanko + mono receipt. Authored at
+                   final typography so the transition is a visibility
+                   flip, not a re-render. aria-live=polite on the
+                   wrapper announces the receipt to screen readers
+                   when the layout class flips. -->
+              <div
+                class="invitation__confirmation"
+                aria-live="polite"
+              >
+                <svg
+                  class="invitation__hanko"
+                  viewBox="0 0 100 100"
+                  role="img"
+                  aria-label="Seal: Ju, meaning received — the studio's mark"
+                >
+                  <use
+                    href="#hanko-frame"
+                    class="invitation__hanko-frame invitation__hanko-frame--base"
+                  />
+                  <use
+                    href="#hanko-frame"
+                    class="invitation__hanko-frame invitation__hanko-frame--echo"
+                  />
+                  <text
+                    class="invitation__hanko-char invitation__hanko-char--base"
+                    x="50"
+                    y="72"
+                  >受</text>
+                  <text
+                    class="invitation__hanko-char invitation__hanko-char--echo"
+                    x="50"
+                    y="72"
+                  >受</text>
+                </svg>
+                <p class="meta invitation__receipt">
+                  received — no. 042 · we will write back within a week
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- ─── §VII — THE COLOPHON ─────────────────────────────
+               The page turning closed. A colophon — a book's
+               closing typographic note about how the object was
+               made — NOT a footer. The copy is locked; two short
+               lines stating how the monograph was set, a small
+               終 mark below (end / finis), and ONE hair-thin
+               sumi-ink rule above that draws in from the centre
+               out in two segments meeting at the midpoint on
+               scroll-in. The draw-in is §VII's only motion AND
+               the page's only use of DrawSVGPlugin (imported in
+               motion.js since §I expressly for this moment).
+
+               Composition is CENTERED here — the one section
+               where centered is correct, because a colophon is
+               a symmetrical closing gesture, not a letter or a
+               call. §VI earned narrow-column left-aligned (a
+               hand on paper); §VII earns centered printed matter
+               (the final page of a set book).
+
+               ABSENCES (enumerated — learning #43, governing):
+               • no ambient motion; no exit animation
+               • no interactive affordance — nothing is clickable
+               • no red whatsoever — the page's two red moments
+                 are earned in §III (4th-gen hanko) and §VI
+                 (confirmation stamp) per learning #30; 終 stays
+                 in --ink-ash, NOT --ink-hanko
+               • no links, email, social row, year, timestamp,
+                 copyright, "made by" credit, sitemap, or any
+                 other footer creep — the copy IS the colophon
+               • no "no blade was photographed" meta-wink; the
+                 cut was deliberate and is not re-openable
+               • no text reveal, no 終 reveal — the rule draw-in
+                 resolves at the composition's optical centre
+                 (directly above the text), which IS the section's
+                 "something appears" beat; adding a second or
+                 third reveal would refuse §V's exhale and trade
+                 §VII's signature motion for generic texture
+
+               Progressive enhancement (learning #23) — the rule
+               is authored fully-drawn in the SVG below. The
+               html.js-pending FOUC gate in colophon.css hides
+               only the rule SEGMENTS (not the text, not 終) so
+               the text and 終 render at final typography from
+               first paint. 6c's initColophon will write the
+               DrawSVG hidden state synchronously (two segments
+               collapsed to their centre endpoints) and release
+               opacity, then a paused timeline + ScrollTrigger at
+               roughly "top 78%" plays the two-segments-meeting
+               draw-in ONCE on scroll-in (learning #41), with a
+               reduced-motion short-circuit that skips the
+               gsap.set so the CSS @media override keeps the rule
+               visible through the gate.
+          ────────────────────────────────────────────────────── -->
+          <section
+            id="colophon"
+            class="colophon"
+            aria-labelledby="colophon-heading"
+          >
+            <h2 id="colophon-heading" class="visually-hidden">Colophon</h2>
+
+            <!-- Rule: two hair-thin sumi-ink segments that meet
+                 at x=200 (the viewBox midpoint). Authored as two
+                 <path>s (not a single <line>) so:
+                   (a) learning #44's filterUnits gotcha — <line>
+                       has zero geometric height so percentage-
+                       based filter regions collapse — does NOT
+                       apply here; each <path> has a 2D bounding
+                       box the default objectBoundingBox units
+                       handle correctly, and #ink-wash can be
+                       reused verbatim without a local filter.
+                   (b) 6c's DrawSVG "two pens meeting" motion has
+                       clean per-segment geometry: each segment
+                       collapses to the endpoint nearest the
+                       centre and draws out toward its far end
+                       simultaneously, landing on the midpoint
+                       together. A single <line> would require
+                       a "50%→50%" origin and draw in both
+                       directions from the same path, which is
+                       the same visual but less explicit.
+                 preserveAspectRatio="none" lets the 400×1 viewBox
+                 stretch to whatever column-proportional width
+                 colophon.css sets. Both segments share #ink-wash
+                 so the advancing draw edges read as ink, not as
+                 a UI divider — the two-pass turbulence and
+                 displacement already used by §II's kanji and
+                 §III/§VI's hanko stamps. -->
+            <svg
+              class="colophon__rule"
+              viewBox="0 0 400 1"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <!-- Left segment: M 0 → L 200. 6c will collapse it
+                   to "100% 100%" (zero length at the end, i.e. at
+                   x=200) and draw to "0% 100%" (full length). -->
+              <path
+                class="colophon__rule-seg colophon__rule-seg--left"
+                d="M 0 0.5 L 200 0.5"
+              />
+              <!-- Right segment: M 200 → L 400. 6c will collapse
+                   it to "0% 0%" (zero length at the start, i.e.
+                   at x=200) and draw to "0% 100%". Both segments'
+                   timelines share one tween so they resolve
+                   simultaneously at the midpoint. -->
+              <path
+                class="colophon__rule-seg colophon__rule-seg--right"
+                d="M 200 0.5 L 400 0.5"
+              />
+            </svg>
+
+            <!-- Copy: two lines, verbatim, line break preserved.
+                 Both lines are own blocks so they never reflow
+                 into a single paragraph at narrow viewports. -->
+            <p class="colophon__text">
+              <span class="colophon__text-line"
+                >Set in Fraunces and Shippori Mincho B1.</span
+              >
+              <span class="colophon__text-line"
+                >Composed in 2026 for Ozu &amp; Sons, Sakai, Ōsaka.</span
+              >
+            </p>
+
+            <!-- 終 — "end" / "finis." The traditional Japanese
+                 cinematic/editorial closing mark. Shippori Mincho
+                 via .ja, small type scale, --ink-ash (NOT
+                 --ink-hanko — learning #30). One pass, no echo
+                 (learning #28's two-glyph-pass is earned by the
+                 hanko stamps, not by a quiet closing mark).
+                 aria-hidden because the character is a purely
+                 visual seal on the section; a screen reader
+                 announcing "end" would be decorative-text-read-
+                 aloud, which is noise. -->
+            <p class="ja colophon__end" aria-hidden="true">終</p>
+          </section>
         </main>
       </div>
     </div>
