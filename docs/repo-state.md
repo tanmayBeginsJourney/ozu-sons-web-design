@@ -16,7 +16,7 @@ Dev server: `npm run dev` → `http://localhost:5173/`
     - `<filter id="ink-wash-echo">` — two-pass w/ different seeds for §II echo glyph, §III hanko echo layers.
     - `<symbol id="hanko-frame">` — carved-square seal frame, reused 4× in §III.
   - No knife-silhouette paths in the top-level defs. §IV loads its visuals as `<img>` from `/public/` (see `architecture.md` §IV and learning #36). An explanatory comment marks where inlined knife paths used to live.
-  - `#smooth-wrapper > #smooth-content > <main id="page">` with §I (threshold), §II (place), §III (lineage), §IV (forge) markup.
+  - `#smooth-wrapper > #smooth-content > <main id="page">` with §I (threshold), §II (place), §III (lineage), §IV (forge), §V (philosophy) markup.
   - §II kanji SVG has its own `<defs>` with a `radialGradient` + mask; mask circle default `r="900"` (progressive enhancement).
   - §III brush SVG has local `<defs>` with a `<path id>` silhouette reused by two `<use>`, a `linearGradient`, and a mask with a rect that scrubs its `y` attribute for the density band (learning #29).
   - §IV markup is six `<article class="forge__plate">` blocks, each containing a stage index, an `<img>` loading its `/public/*.svg`, a caption, and a note.
@@ -29,12 +29,12 @@ Dev server: `npm run dev` → `http://localhost:5173/`
 
 ### `/src/`
 
-- `main.js` — entry; section init ORDER is `initPlace → initLineage → initForge → initThreshold`. This ordering is LOAD-BEARING (learning #24). When §V ships, its `initPhilosophy` (or equivalent) must slot BEFORE `initThreshold` — keeping `initThreshold` last — and must write its synchronous hidden-state `gsap.set` in its happy path before control returns. Same for §VI and §VII.
+- `main.js` — entry; section init ORDER is `initPlace → initLineage → initForge → initPhilosophy → initThreshold`. This ordering is LOAD-BEARING (learning #24). `initThreshold` must stay LAST because it removes the `html.js-pending` FOUC gate at the end of its synchronous init. When §VI and §VII ship, their init calls must slot BEFORE `initThreshold` — keeping `initThreshold` last — and must write their synchronous hidden-state `gsap.set`s in their happy path before control returns.
 
 ### `/src/styles/`
 
-- `main.css` — imports `tokens → reset → typography → layout → sections/threshold.css → sections/place.css → sections/lineage.css → sections/forge.css`. Order matters (learning #5).
-- `tokens.css` — full Design Constitution as CSS vars (READ THIS FIRST — source of truth).
+- `main.css` — imports `tokens → reset → typography → layout → sections/threshold.css → sections/place.css → sections/lineage.css → sections/forge.css → sections/philosophy.css`. Order matters (learning #5).
+- `tokens.css` — full Design Constitution as CSS vars (READ THIS FIRST — source of truth). §V adds `--philosophy-offset: clamp(1.25rem, 2.5vw, 2.5rem)` for the second-line asymmetric offset.
 - `reset.css` — modern reset, headings non-bold by default.
 - `typography.css` — base type, utility classes (`.colossus`, `.display`, `.prose`, `.quote`, `.meta`, `.ja`).
 - `layout.css` — page structural rules; `html[data-smoother="on"]` scoping for the fixed `#smooth-wrapper`.
@@ -42,6 +42,7 @@ Dev server: `npm run dev` → `http://localhost:5173/`
 - `sections/place.css` — §II layout + typography + extended `html.js-pending` gate for §II targets + `.place__line` rules for SplitText line mode.
 - `sections/lineage.css` — §III layout + typography + hanko stamp rules + brush base/dense styles + `.lineage__quote-line` rules for SplitText + `html.js-pending` gate for §III targets + narrow-viewport overrides. Brush silhouette height is explicit via `calc()`.
 - `sections/forge.css` — §IV layout + typography + plate sizing rules. Three size variants — `.forge__plate-img--chunky` (stage 1: max-height 260 / max-width 600), `.forge__plate-img--billet` (stage 2: max-height 180 / max-width 100%), `.forge__plate-img--blade` (stages 3–6: max-height 360 / max-width 100%). Mobile breakpoint at ≤720px (180 / 130 / 240 respectively). Rationale in CSS comments and learning #37. Pinned layout is keyed to `.forge--pinned` (learning #39), NOT to `html[data-smoother]`.
+- `sections/philosophy.css` — §V layout + typography + asymmetric second-line rules. `min-height: 100svh`, `display: grid`, `grid-template-rows: 40fr auto 60fr` for optical-centre-at-42vh. `.philosophy__sentence` at `--type-display` w/ `opsz 96 / wght 320 / line-height 1.1 / ls --ls-tight`. `.philosophy__line--second` offsets via `margin-inline-start: var(--philosophy-offset)`, tighter `letter-spacing: -0.02em`, `margin-block-start: 0.12em`. FOUC gate: `html.js-pending .philosophy__sentence { opacity: 0 }`, overridden inside `prefers-reduced-motion`. Narrow viewport ≤720px steps type to `--type-h2` and shrinks offset to 60%.
 
 ### `/src/modules/`
 
@@ -61,6 +62,7 @@ Dev server: `npm run dev` → `http://localhost:5173/`
   - Three short-circuit branches (reduced-motion / no smoother / narrow viewport ≤720px) all return BEFORE any pin, trigger, SplitText, or inline-style write, yielding the static contact-sheet fallback.
   - Adds `.forge--pinned` class ONLY on the happy path — CSS layout keys to that class (learning #39).
   - See `forge.js` header comment for the full step (i)–(vii) build log.
+- `philosophy.js` — §V motion: single-sentence scroll-triggered word-by-word reveal with scroll-interruptible fast-forward. Reduced-motion short-circuit returns before any side effects. Synchronous `gsap.set(sentence, { opacity: 0 })` runs in the FOUC gate window; SplitText + per-word hidden state are written inside `document.fonts.ready` (learning #26). Hybrid A+B pacing with "one-sentence still-held" constants (learning #31): `BASE 0.70s, SLOPE 0.05s/char, MIN 0.80s, MAX 1.80s, OVERLAP 0.50`. ScrollTrigger at `start: "top 65%"`, `end: "bottom top"` (NOT `once: true` — needs `onUpdate` for interrupt detection). `onEnter` plays a paused timeline, guarded by `revealStarted` flag so scroll-back does not replay. `onUpdate` compares sentence midpoint against viewport centre and fires `fastForward()` if crossed while timeline is still running — pauses timeline, kills word tweens, snaps remaining words to final state at 120ms + 40ms stagger, power2.out, then `clearProps` (learning #42). No ambient motion, no exit animation (learning #43). Header comment enumerates the absences explicitly.
 
 ## Console traces on reload
 
@@ -99,12 +101,24 @@ On scroll into the pin, every stage flip: `[forge] stage N → M`.
 [forge] narrow viewport → final state
 ```
 
+### §V (philosophy)
+```
+[philosophy] init
+[philosophy] fonts ready, splitting sentence
+[philosophy] SplitText produced 8 words
+[philosophy] word timing: Eighteen[env=1.10s @0.00s] · months[env=1.00s @0.55s] · to[env=0.80s @1.05s] · make.[env=0.95s @1.45s] · A[env=0.80s @1.93s] · lifetime[env=1.10s @2.33s] · to[env=0.80s @2.88s] · keep.[env=0.95s @3.28s]
+```
+On scroll into §V: `[philosophy] reveal timeline started`. If completed uninterrupted: `[philosophy] reveal timeline complete`. If scroll-interrupted: `[philosophy] reveal interrupted by scroll → fast-forward N remaining words → fast-forward complete`.
+
+Short-circuit: `[philosophy] reduced-motion → final state`.
+
 ## Section status + 6d/6e sign-off
 
 - §I: BUILT + APPROVED. Variable-envelope pacing override is deliberate (learning #21). 6d walked through in writing. 6e code-level verified A, B, C; D, E, F, H, I flagged for user-in-browser during Step 7.
 - §II: BUILT + APPROVED. 6d + 6e both complete; tests A, B, C code-level verified; D, E, F, H, I flagged for user-in-browser.
 - §III: BUILT + APPROVED. Brush height truncation bug fixed. 6d + 6e complete; A, B code-level verified; C, D, E, F, H, I flagged.
 - §IV: BUILT + APPROVED (static, motion, 6d, 6e). The path-morph → asset-crossfade pivot landed, shipped, is no longer re-openable. 6c built in seven tight passes (step log in `forge.js` header). A, B code-level verified; C, D, E, F, H, I flagged. Test B (reduced-motion) was verified at code level only — the MCP browser cannot emulate `prefers-reduced-motion` via available tools; user should re-run in DevTools → Rendering when convenient.
+- §V: BUILT + APPROVED (static, motion, 6d, 6e). 6c built in three passes (hidden state + SplitText → reveal timeline → scroll-interruptible fast-forward). A, B, C code-level verified; D, E, F, H flagged for user-in-browser during Step 7. G passes trivially (§V has no interactive elements). I deferred per the ritual. Tuning constants (`OVERLAP 0.50`, `FF_STAGGER 0.04`) landed at handoff defaults and may be revisited in Step 7 polish — see architecture.md §V flagged follow-ups.
 
 ## Open infrastructure gaps
 
@@ -112,9 +126,11 @@ On scroll into the pin, every stage flip: `[forge] stage N → M`.
 
 A debounced `window.resize` listener in `motion.js` calls `ScrollTrigger.refresh(true)` on all registered triggers. Verified during §IV 6c: live-resizing from 1920 → 720 rebuilds pin positions without ghost scroll offsets. §V/§VI/§VII inherit this for free. Do NOT remove.
 
+Latent gap: SplitText itself does NOT re-split on resize — §I/§II/§III/§V all share this. If type scale jumps across the mobile breakpoint mid-session, word/line metrics used by clip-path math become stale. Low-impact because users rarely resize across the breakpoint after first paint. Document for Step 7; fix (if any) is a single `SplitText.revert()` + re-split inside the resize handler, which would be page-wide rather than per-section.
+
 ### FOUC gate removal — LOAD-BEARING ORDER
 
-Removed inside `threshold.js` at the end of its synchronous init. Current order (`initPlace → initLineage → initForge → initThreshold`) is one-misedit-away from regression — see learning #24 for the suggested Step 7 refactor (move gate removal to `main.js` after all section inits queue their synchronous `gsap.set`s). §V/§VI/§VII section modules must each add their init call BEFORE `initThreshold` and write their synchronous hidden-state `gsap.set` there.
+Removed inside `threshold.js` at the end of its synchronous init. Current order (`initPlace → initLineage → initForge → initPhilosophy → initThreshold`) is one-misedit-away from regression — see learning #24 for the suggested Step 7 refactor (move gate removal to `main.js` after all section inits queue their synchronous `gsap.set`s). §VI/§VII section modules must each add their init call BEFORE `initThreshold` and write their synchronous hidden-state `gsap.set` there.
 
 ### Paper grain page-wide texture — NOT YET APPLIED (Step 7)
 

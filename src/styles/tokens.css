@@ -73,6 +73,13 @@
 
   --gutter:        clamp(1.25rem, 4vw, 3rem);
 
+  /* §V — asymmetric second-line offset. ~40px at desktop,
+     scaling down on narrower viewports so the couplet keeps
+     its visual relationship instead of the second line
+     colliding with the first. The offset is load-bearing —
+     it breaks the symmetrical poster-couplet read. */
+  --philosophy-offset: clamp(1.25rem, 2.5vw, 2.5rem);
+
   /* ─── Motion tokens ───────────────────────────────────────
      These mirror the GSAP eases used in motion.js so CSS
      transitions feel identical to scripted animations.        */

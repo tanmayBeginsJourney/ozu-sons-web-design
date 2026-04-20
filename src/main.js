@@ -28,22 +28,19 @@ import { initThreshold } from "./modules/threshold.js";
 import { initPlace } from "./modules/place.js";
 import { initLineage } from "./modules/lineage.js";
 import { initForge } from "./modules/forge.js";
+import { initPhilosophy } from "./modules/philosophy.js";
 
 initMotion();
 
-// Order matters: initPlace, initLineage, and initForge must run
-// BEFORE initThreshold. Each section module's synchronous gsap.set
+// Order matters: every section module EXCEPT initThreshold must
+// run BEFORE initThreshold. Each module's synchronous gsap.set
 // writes inline opacity:0 (and related initial-state styles) on
 // its pre-reveal targets. threshold.js's init removes the
 // html.js-pending CSS gate at the end of its synchronous run —
-// so by that moment, §II, §III, and §IV targets must already carry
-// their inline hidden styles, or they flash at final opacity for
-// the frame between "gate removed" and the deferred font-ready
-// paths that build per-line SplitText states.
-//
-// initForge is a no-op during the 6b.1 review phase (contact sheet
-// is static) but is wired in the correct position now so 6c doesn't
-// have to re-touch this file.
+// so by that moment, §II, §III, §IV, and §V targets must already
+// carry their inline hidden styles, or they flash at final
+// opacity for the frame between "gate removed" and the deferred
+// font-ready paths that build per-word/line SplitText states.
 //
 // This ordering constraint is load-bearing and fragile; see
 // learning #24 for the Step 7 refactor that moves gate removal
@@ -51,4 +48,5 @@ initMotion();
 initPlace();
 initLineage();
 initForge();
+initPhilosophy();
 initThreshold();

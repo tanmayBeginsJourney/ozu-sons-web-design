@@ -371,3 +371,44 @@ General rule for any climax frame in a scroll-pinned sequence: subtract from nei
 Compare to scrubbed reveals (§I headline words scrub with scroll) and continuous reveals (§II kanji mask animates independently of scroll after the trigger). The paused-timeline pattern is the RIGHT one when reveals are tied to DISCRETE STATE CHANGES (stage flips, tab switches, form steps) rather than continuous scroll.
 
 Reusable for: §VI's form-submission confirmation (stamp + confirmation line animate ONCE on submit, do not replay on re-focus), any future accordion/stepper pattern.
+
+---
+
+## Additions from the §V motion agent
+
+## 42. SCROLL-INTERRUPTIBLE REVEAL — WHEN AND HOW TO EARN IT
+
+§V's sentence reveal is ≈4.2s (the slowest reveal on the page, by design). Held in a full viewport, a faster reader can scroll past before the reveal completes, which would leave a slow word-bleed trailing behind them — punishing the reader for engaging at their own pace. §V solves this by yielding to the scroll gesture: if the sentence's midpoint crosses above the viewport centre while the reveal timeline is still running, remaining un-revealed words snap to final state at 120ms + 40ms stagger, power2.out.
+
+The pattern:
+- ScrollTrigger with `start` at viewport threshold, `end: "bottom top"` (full-range so `onUpdate` fires throughout), NOT `once: true`.
+- `onEnter` plays a `paused: true` timeline, guarded by a `revealStarted` flag so scroll-back re-entry does NOT replay.
+- `onUpdate` computes a DOM-position condition (e.g., `sentence.getBoundingClientRect()` midpoint vs `innerHeight/2`) and invokes a `fastForward()` closure when the condition fires AND the timeline is still running.
+- `fastForward()`: `tl.pause()`, `gsap.killTweensOf(split.words)` to cancel in-flight per-word tweens, filter remaining via `revealTime < onsets[i] + envelopes[i]`, issue a single tween chain with matching final-state params + `clearProps` on complete. Idempotent via an `interrupted` flag.
+
+Why express the interruption condition against THE DOM (getBoundingClientRect) rather than ScrollTrigger's progress: progress depends on section height, which varies with svh/dvh/mobile address-bar behavior. DOM position is precisely what the editorial intent cares about — "has the reader visually passed the sentence?"
+
+When to use it (ALL must hold):
+- (a) Reveal duration is long enough that a reader can outpace it (>~2s).
+- (b) Content is held in a full viewport or large vertical space — short content that always fits in view rarely gets outpaced.
+- (c) Reveal is held-content, not scrub-tied. Scrubbed reveals are already user-controlled; they can't be interrupted.
+
+Why §I–§IV do NOT use it:
+- §I headline (3.4s) is short and positioned high; readers rarely scroll past it before completion.
+- §II/§III reveals gate at `top 78%`, placing them near viewport centre when they fire.
+- §IV's captions play on discrete stage flips inside a 3-viewport pinned scroll — the reader is always locked with the reveal.
+- §V is uniquely vulnerable because it's held in a full viewport AND is long enough to outpace.
+
+Reusable for: any future full-viewport held-content reveal, especially §VII if its rule draw-in is ever lengthened. Do NOT add to short or scrubbed reveals — the affordance costs implementation complexity for zero reader benefit.
+
+## 43. ABSENCE AS EDITORIAL STRUCTURE (§V's governing rule)
+
+§V has zero ambient motion and no exit animation. No idle-reactive breathing, no rotation, no blob, no grain-drift, no scrub, no blur, no fade, no scroll-progress tell, no mono counter, no parallax. The section is the simplest visual moment on the page, deliberately.
+
+This is the logical extension of learning #40's "subtract from neighbours, don't add to the climax." §IV's stage 6 subtracted micro-motion from the climax object; §V extends that subtraction from the object to the frame itself. The knife has been made; what's left is the meaning, held as a single line. Adding anything — even "just a subtle grain drift" — would read as trying to compete with §IV's cinema, which §V is explicitly the exhale after.
+
+The temptation to "add one thing because the canvas feels empty" is the biggest failure mode for any minimal section (learning #7 restated for §V's specific context). Discipline: NAME THE ABSENCES EXPLICITLY in both the architecture brief and the section module header. When the temptation returns in Step 7 polish, the explicit list argues back on record.
+
+Distinction from learning #40: #40 is about climax frames in scroll-pinned sequences. #43 is about whole sections in a non-pinned editorial monograph. Different scope, same discipline.
+
+Reusable for: §VII (colophon) may face the same temptation — the final rule + small 終 + credits are the whole move. If Step 7 suggests adding "one more subtle thing" to §VII, this learning says no. More generally: any "quiet" section after a loud neighbour should have its absences explicitly enumerated.

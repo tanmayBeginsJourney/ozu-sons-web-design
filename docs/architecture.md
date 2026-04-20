@@ -135,9 +135,71 @@ CSS keys its pinned layout to a `.forge--pinned` class that `forge.js` adds ONLY
 
 MorphSVGPlugin is NOT USED in §IV. It stays imported in `motion.js` (carries no cost). DrawSVG likewise unused in §IV but remains imported for §VII's final rule draw-in. Do NOT rip them out to "clean up."
 
-## §V — THE PHILOSOPHY   [NOT YET BUILT — NEXT TASK]
+## §V — THE PHILOSOPHY   [BUILT + APPROVED]
 
-See the top-level `handoff.md` for the full §V brief. When §V ships, move its brief into this file.
+Static + motion both approved. 6d + 6e complete. The exhale after §IV's cinema — one sentence, two lines, held in full viewport. §V is the one section on the page with zero ambient motion and no exit animation. The narrative justification: the knife has been made; what's left is the meaning, held as a single line. The stillness extends §IV's stage-6 film-cut hold (learning #40) from the object to the frame itself.
+
+### Copy
+
+Verbatim, hard line break preserved:
+
+    "Eighteen months to make.
+     A lifetime to keep."
+
+### Composition
+
+- Section is 100svh. Sentence's optical centre sits at ≈42vh (classical book-page asymmetry — mathematical centre reads low; the eye weights the upper portion, so we lift above geometric centre). Implemented via `grid-template-rows: 40fr auto 60fr` with the sentence in the middle row.
+- Typography: `--type-display` at `font-variation-settings: "opsz" 96, "wght" 320`. Line-height 1.1 (looser than `.display`'s default `--lh-tight` 0.92 so the couplet breathes between lines). First line carries `--ls-tight` (-0.015em) as the sentence base.
+- TYPOGRAPHIC DISRUPTION (the whole typographic move): second line offset `--philosophy-offset` (`clamp(1.25rem, 2.5vw, 2.5rem)` ≈ 40px desktop) to the right of the first line's left edge, with `letter-spacing: -0.02em` (tighter than the sentence base), and a `margin-block-start: 0.12em` controlled beat between lines. NOT centred. The asymmetry is what keeps the couplet from reading as a symmetrical poster pull-quote.
+- Narrow viewport (≤720px): step type down to `--type-h2` so both lines fit single-line each; shrink offset to 60% of desktop so the asymmetry still reads proportionally. Tracking shift stays verbatim — it's a character trait, not size-dependent.
+
+### Entry reveal — EXECUTION
+
+- SplitText across both lines as one ordered `words` array of 8 elements. Per-word vocabulary matches §I's `threshold__word` exactly: opacity 0→1, yPercent 18→0, clipPath inset from right-clipped `(-0.5em 100% -0.5em 0)` to extended `(-0.5em -8% -0.5em -8%)`, `url(#ink-bleed)` filter + blur 5px→0px, `willChange` during transition. Last word's `onComplete` calls `clearProps` on all words so static state is CSS-driven.
+- Hybrid A+B pacing per learning #31's "one-sentence still-held" constants: `BASE 0.70s, SLOPE 0.05s/char, MIN 0.80s, MAX 1.80s, OVERLAP 0.50`. These landed as starting constants without needing live-tune; expect to revisit OVERLAP in Step 7 polish if the cadence reads packed. Total reveal duration ≈ 4.2s — the slowest reveal on the page, §V's patient scale by design.
+- Trigger: ScrollTrigger at `start: "top 65%"`, `end: "bottom top"` (full-range, NOT `once: true` — we need `onUpdate` to fire through the reveal). Reveal timeline built `paused: true`; `onEnter` plays it once, guarded by a `revealStarted` flag so re-entry on scroll-back does not replay.
+- Fonts-ready gate: SplitText runs inside `document.fonts.ready.then(...)` (learning #26). The sentence container carries inline `opacity: 0` during the async wait — same pattern as §II's prose container, learning #24.
+
+### Scroll-interruptible fast-forward — EXECUTION (unique to §V)
+
+When the user scrolls past the sentence block's midpoint while the reveal timeline is still running, remaining un-revealed words snap to final state at 120ms duration + 40ms stagger, power2.out.
+
+Implementation:
+
+- `onUpdate` on the same trigger computes `sentence.getBoundingClientRect().top + rect.height/2` against `window.innerHeight/2`. When the sentence's vertical midpoint crosses above the viewport centre, `fastForward()` is invoked.
+- The interruption condition is expressed against the DOM directly rather than the trigger's progress, because progress depends on §V's overall height (svh/dvh/address-bar variance) while the sentence's screen position is precisely what the editorial intent cares about.
+- `fastForward()` pauses the timeline, calls `gsap.killTweensOf(split.words)` to cancel any in-flight per-word tween, filters remaining un-completed words by `revealTime < onsets[i] + envelopes[i]`, and runs a single `gsap.to(remaining, { ...final params, duration: 0.12, stagger: 0.04, ease: "power2.out", onComplete: clearProps })`. Idempotent via an `interrupted` flag.
+
+Why §V uniquely earns this affordance (§I–§IV do NOT):
+- §I's headline (3.4s) is short and positioned high in the viewport — readers rarely outpace it.
+- §II/§III editorial reveals gate at `top 78%`, which places the reveal near the reader's viewport centre.
+- §IV's captions play on discrete stage flips and are pinned inside a 3-viewport scroll range — the reader is always locked with the reveal.
+- §V is held in a full viewport; a reader who has already read the sentence would otherwise be punished with a slow tail bleeding in behind them. The interruption is the editorial courtesy: "you're past it; we acknowledge that; moving on."
+
+### Absence list — do NOT add any of these in Step 7
+
+- No ambient motion (no idle-reactive breathing, no rotation, no blob, no grain-drift).
+- No exit animation — NO scrub, NO blur, NO fade. The section just leaves the viewport naturally when scrolled past. Treat as turning past a printed page.
+- No scroll-progress tell, no mono counter, no parallax, no z-layer depth.
+- §V's "depth" is temporal (ink-bleed during reveal) and editorial (stillness after §IV's cinema), NOT visual layering. This is deliberate per learning #7 and extends learning #40's climax-subtraction rule.
+
+### Reduced-motion + progressive enhancement
+
+- `philosophy.js` returns immediately in the reduced-motion branch — no SplitText, no `gsap.set`, no trigger.
+- CSS's `@media (prefers-reduced-motion: reduce) html.js-pending .philosophy__sentence { opacity: 1 }` overrides the FOUC gate so HTML's final state renders directly.
+- HTML is authoritative (learning #23) — if JS fails entirely, the sentence is visible at its intended typography.
+
+### FOUC gate participation
+
+`initPhilosophy` slots into `main.js` BEFORE `initThreshold`. Its synchronous `gsap.set(sentence, { opacity: 0 })` runs before threshold.js removes `html.js-pending`. Per-word hidden state is written inside `fonts.ready`; the sentence container's inline `opacity: 0` covers the async wait window.
+
+- Unique: the scroll-interruptible reveal (new pattern, reusable for §VII or any future full-viewport held-content reveal). Also unique: the absence of everything else — §V is the one section with zero ambient motion and no exit.
+
+Flagged follow-ups (not blocking):
+- `OVERLAP 0.50` landed without live-tune. If the cadence reads packed in Step 7 review, raise to 0.55–0.60 (higher spaces words further apart, which reads MORE patient). `ENV_SLOPE 0.05` is the next lever if 8-char words feel dragged (drop to 0.04 shrinks long words by ~0.08s).
+- Fast-forward stagger total (40ms × up-to-7 remaining words + 120ms trailing ≈ 400ms) may feel long for a "snap to visible." If Step 7 review flags it, drop `FF_STAGGER` to 0.02 or remove entirely for a parallel snap.
+- SplitText does NOT re-split on viewport resize. Shared gap with §I/§II/§III; not §V-specific. Document for Step 7.
+- §V 6d + 6e complete. Tests A, B, C code-level verified; D, E, F, H flagged for user-in-browser during Step 7 polish (same posture as prior sections). G (keyboard/a11y) passes trivially — §V has no interactive elements. I deferred per the ritual (after §VI).
 
 ## §VI — THE INVITATION   [NOT YET BUILT]
 

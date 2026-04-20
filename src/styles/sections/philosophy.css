@@ -1,0 +1,117 @@
+/* ──────────────────────────────────────────────────────────────
+   philosophy.css — §V. The held thought.
+   One sentence, two lines, asymmetric. The section is full
+   viewport; the sentence's optical centre sits ≈42% from the
+   top (classical book-page asymmetry — the eye weights the
+   upper portion, so a mathematically-centred block reads low).
+
+   Second line is offset right of the first line's left edge
+   with tighter tracking. That asymmetry is the whole
+   typographic move; without it, the couplet reads as a
+   symmetrical poster pull-quote.
+
+   Zero ambient motion in this section. No exit. 6c adds
+   SplitText + a scroll-interruptible reveal and nothing else.
+   If you are tempted to add more here, re-read learning #7.
+   ────────────────────────────────────────────────────────── */
+
+.philosophy {
+  min-height: 100svh;
+  display: grid;
+  /* 40fr top / 60fr bottom puts the sentence's centre-of-mass
+     at ~42vh when the block itself is ~20vh tall. Geometric
+     centre would read too low; classical book-page layout
+     lifts the optical centre above it. */
+  grid-template-rows: 40fr auto 60fr;
+  padding-inline: var(--gutter);
+}
+
+/* Pre-reveal gate. The inline <head> script adds
+   html.js-pending before first paint; philosophy.js (6c) will
+   write inline opacity:0 on the sentence block synchronously,
+   then per-word hidden states inside the fonts.ready await.
+   Gating the sentence block (not the words) lets the async
+   SplitText wait happen without any frame showing the
+   sentence at final opacity. Reduced-motion overrides below —
+   CSS renders the final static state directly. */
+html.js-pending .philosophy__sentence {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.js-pending .philosophy__sentence {
+    opacity: 1;
+  }
+}
+
+.philosophy__sentence {
+  grid-row: 2;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--type-display);
+  /* Slightly looser than .display's default lh-tight (0.92).
+     The couplet needs a real beat between the two lines to
+     read as a held thought; tight line-height would make it
+     read as an ornamental lockup. */
+  line-height: 1.1;
+  /* opsz 96 is between body (14) and colossus (144) — this
+     sentence is editorial-display, not hero-display. wght 320
+     matches the colossus headline so §V's voice is the same
+     maker as §I's. */
+  font-variation-settings: "opsz" 96, "wght" 320;
+  letter-spacing: var(--ls-tight);
+  color: var(--ink-sumi);
+}
+
+/* Each line is its own block element so both lines start at
+   their own left edge and SplitText's "words" mode has a
+   stable DOM to wrap. */
+.philosophy__line {
+  display: block;
+}
+
+/* The asymmetric move.
+     - margin-inline-start: second line's content starts
+       --philosophy-offset to the right of the first line's
+       left edge. The offset scales with the viewport so the
+       visual relationship is preserved across sizes.
+     - letter-spacing: -0.02em is tighter than the sentence's
+       base --ls-tight (-0.015em) — a quiet tightening that
+       makes the second line read as the quieter second
+       thought rather than a twin of the first.
+     - margin-block-start: 0.12em is the controlled beat
+       between lines, similar in idea to §I's 0.08em
+       threshold__line break but wider, because §V calls for
+       breath. */
+.philosophy__line--second {
+  margin-inline-start: var(--philosophy-offset);
+  letter-spacing: -0.02em;
+  margin-block-start: 0.12em;
+}
+
+/* SplitText wraps each word in <span class="philosophy__word">.
+   Matches §I's .threshold__word vocabulary — inline-block for
+   clip-path + transform support; overflow visible so
+   descenders ('g' loop, 'p' tail) are never cropped by the
+   reveal. */
+.philosophy__word {
+  display: inline-block;
+  overflow: visible;
+}
+
+/* ─── Narrow viewports ─────────────────────────────────────
+   Below ~720px the sentence at --type-display's floor (3.5rem
+   / 56px) overflows. Step type down to h2-scale so both lines
+   fit single-line each; shrink the offset proportionally so
+   the asymmetry still reads rather than collapsing or
+   dominating the shrunken block. */
+@media (max-width: 720px) {
+  .philosophy__sentence {
+    font-size: var(--type-h2);
+    line-height: 1.15;
+  }
+
+  .philosophy__line--second {
+    margin-inline-start: calc(var(--philosophy-offset) * 0.6);
+  }
+}

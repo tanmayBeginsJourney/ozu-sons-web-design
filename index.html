@@ -778,6 +778,49 @@
               </div>
             </div>
           </section>
+
+          <!-- ─── §V — THE PHILOSOPHY ─────────────────────────────
+               The held thought. One sentence, two lines, held in
+               full viewport. After §IV's cinema this is the exhale:
+               the knife is made, the meaning remains.
+
+               Composition: sentence's optical centre sits ≈42% from
+               viewport top (classical book-page asymmetry). Second
+               line is offset right of the first line's left edge
+               with tighter tracking. The asymmetry is the
+               typographic move — it keeps the couplet from reading
+               as a symmetrical poster pull-quote.
+
+               The sentence is marked up as a <p> with two <span>
+               lines so SplitText has a stable per-line DOM to wrap
+               on "words" mode. A visually-hidden <h2> gives AT a
+               section name; the sentence itself is an epigraph,
+               not a heading.
+
+               THE FINAL VISIBLE STATE IS AUTHORED IN HTML — if JS
+               never runs, the sentence is visible at its intended
+               typography. philosophy.js (6c) writes the hidden
+               initial state synchronously and releases it after
+               the reveal. Learning #23 is the governing pattern.
+          ────────────────────────────────────────────────────── -->
+          <section
+            id="philosophy"
+            class="philosophy"
+            aria-labelledby="philosophy-heading"
+          >
+            <h2 id="philosophy-heading" class="visually-hidden">
+              The Philosophy
+            </h2>
+
+            <p class="philosophy__sentence">
+              <span class="philosophy__line philosophy__line--first"
+                >Eighteen months to make.</span
+              >
+              <span class="philosophy__line philosophy__line--second"
+                >A lifetime to keep.</span
+              >
+            </p>
+          </section>
         </main>
       </div>
     </div>
