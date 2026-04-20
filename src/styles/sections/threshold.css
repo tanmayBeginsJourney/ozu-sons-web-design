@@ -1,0 +1,113 @@
+/* ──────────────────────────────────────────────────────────────
+   threshold.css — §I. The title page.
+   Composition: meta labels pinned to the four corners, colossus
+   headline anchored to the left gutter and set in the lower-third
+   of the viewport. Two hard-broken lines share the same left edge
+   (Option A, not asymmetric — §V is where typographic asymmetry
+   does narrative work; if §I already does it, §V's move lands
+   less). No subhead, no CTA — this is a plaque, not a pitch.
+   ────────────────────────────────────────────────────────────── */
+
+.threshold {
+  /* svh avoids the iOS address-bar resize jank on 100vh. */
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding-block: var(--space-6);
+}
+
+/* Pre-reveal state. The inline <script> in <head> adds html.js-pending
+   before first paint; JS removes it once the reveal timeline is queued.
+   Without this, first paint shows final-state content and the reveal
+   animation runs invisibly over what the eye already accepted as static.
+   Reduced-motion overrides below — no gate, content shows immediately. */
+html.js-pending .threshold__line,
+html.js-pending .threshold__meta-row {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.js-pending .threshold__line,
+  html.js-pending .threshold__meta-row {
+    opacity: 1;
+  }
+}
+
+.threshold__meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-4);
+}
+
+/* The middle row of the grid holds the headline. end-aligning it
+   within that row places the colossus in the lower-third of the
+   viewport — a title-page composition, not a centered hero. */
+.threshold__stage {
+  display: flex;
+  align-items: end;
+  padding-block-start: var(--space-10);
+}
+
+.threshold__headline {
+  /* Inherits sizing from .colossus; this scope owns only layout. */
+  color: var(--ink-sumi);
+  margin: 0;
+}
+
+/* Two spans, each display:block, so both lines start at the same
+   left edge regardless of line length. Using <br> would collapse
+   SplitText's line handling later; spans give us a stable DOM to
+   animate over without re-splitting lines. */
+.threshold__line {
+  display: block;
+}
+
+/* SplitText wraps each word in <span class="threshold__word">.
+   inline-block is required for clip-path + transforms to behave.
+   overflow: visible lets descenders survive the clip-path reveal
+   even if line-height is tighter than the font's descent metric. */
+.threshold__word {
+  display: inline-block;
+  overflow: visible;
+}
+
+/* The second line breathes a half-step down from the first. The
+   colossus' own line-height (0.92) is tight by design; this adds
+   a sliver of air where the eye expects a paragraph break without
+   looking like one. */
+.threshold__line + .threshold__line {
+  margin-block-start: 0.08em;
+}
+
+/* Bottom meta: place on the left, scroll cue on the right. The
+   middle-dot separator in "Sakai, Japan · since 1912" is a real
+   U+00B7 — not a hyphen, not a bullet — to match the editorial
+   register. */
+.threshold__scroll {
+  /* Downward arrow sits next to the word, not stacked below. */
+  font-variant-numeric: tabular-nums;
+}
+
+.threshold__scroll-arrow {
+  /* Arrow uses the display serif so it reads as a drawn glyph,
+     not a UI chevron. */
+  font-family: var(--font-display);
+  font-style: normal;
+  margin-inline-start: 0.5ch;
+  /* The arrow is purely decorative; hide from AT since the word
+     "scroll" already conveys the instruction. */
+}
+
+/* ─── Narrow viewports ─────────────────────────────────────────
+   On phones the four-corner meta can feel cramped; stack the
+   bottom row so "scroll ↓" sits under the place/date without
+   fighting for the same baseline. The top row stays side-by-side
+   because "Ozu & Sons" + "No. 042" always fits. */
+@media (max-width: 480px) {
+  .threshold__meta-row--bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+}

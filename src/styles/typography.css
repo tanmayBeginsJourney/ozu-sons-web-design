@@ -1,0 +1,76 @@
+/* ──────────────────────────────────────────────────────────────
+   typography.css — base type system.
+   Tokens live in tokens.css; this file wires them to elements
+   and utility classes. All variable-font axes are set via
+   font-variation-settings for precise control over opsz/wght.
+   ────────────────────────────────────────────────────────────── */
+
+html {
+  font-family: var(--font-display);
+  font-size: 100%;
+  color: var(--ink-sumi);
+  font-feature-settings: "kern", "liga", "onum", "pnum";
+  font-variation-settings: "opsz" 14, "wght" 400;
+  font-optical-sizing: auto;
+}
+
+body {
+  background-color: var(--ink-washi);
+  font-size: var(--type-body);
+  line-height: var(--lh-normal);
+}
+
+/* Utility: editorial body prose — used inside §II and §III. */
+.prose {
+  font-family: var(--font-display);
+  font-size: var(--type-body);
+  line-height: var(--lh-loose);
+  max-width: var(--measure-narrow);
+  font-variation-settings: "opsz" 16, "wght" 380;
+  color: var(--ink-sumi);
+}
+
+/* Utility: section display headlines. */
+.display {
+  font-family: var(--font-display);
+  font-size: var(--type-display);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  font-variation-settings: "opsz" 144, "wght" 340;
+}
+
+/* Utility: the single hero colossus — §I only. */
+.colossus {
+  font-family: var(--font-display);
+  font-size: var(--type-colossus);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-display);
+  font-variation-settings: "opsz" 144, "wght" 320;
+}
+
+/* Utility: italic pull quotes. */
+.quote {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--type-lede);
+  line-height: var(--lh-snug);
+  font-variation-settings: "opsz" 18, "wght" 360;
+  color: var(--ink-sumi);
+}
+
+/* Utility: tiny mono labels — years, serial numbers, meta. */
+.meta {
+  font-family: var(--font-mono);
+  font-size: var(--type-meta);
+  font-weight: 400;
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--ink-ash);
+}
+
+/* Utility: Japanese characters (mincho serif). */
+.ja {
+  font-family: var(--font-japanese);
+  font-weight: 400;
+  font-feature-settings: normal;
+}

@@ -1,0 +1,113 @@
+/* ──────────────────────────────────────────────────────────────
+   tokens.css — the Design Constitution expressed as CSS.
+   Every magic number on the site lives here. If you are about
+   to hard-code a color, size, or duration in a component file,
+   stop and add it here first.
+   ────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ─── Ink & paper ─────────────────────────────────────────
+     Never pure white. Never pure black. Hanko red is used
+     exactly twice on the entire page; ember only inside the
+     blade silhouette in §IV.                                  */
+  --ink-washi:     #F2ECDF;
+  --ink-sumi:      #1A1613;
+  --ink-ash:       #6B6259;
+  --ink-hanko:     #8B1A1A;
+  --ink-ember:     #7A3A1F;
+
+  /* Tonal derivatives — prefer these over ad-hoc rgba() */
+  --ink-sumi-80:   rgba(26, 22, 19, 0.80);
+  --ink-sumi-60:   rgba(26, 22, 19, 0.60);
+  --ink-sumi-30:   rgba(26, 22, 19, 0.30);
+  --ink-sumi-12:   rgba(26, 22, 19, 0.12);
+  --ink-sumi-06:   rgba(26, 22, 19, 0.06);
+
+  /* ─── Typography ──────────────────────────────────────────
+     Fraunces is variable on the opsz + wght axes. Use
+     font-variation-settings, never font-weight alone, to
+     get proper optical scaling.                               */
+  --font-display:  "Fraunces Variable", "Fraunces", Georgia, "Times New Roman", serif;
+  --font-japanese: "Shippori Mincho B1", "Fraunces Variable", serif;
+  --font-mono:     "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Type scale — dramatic, editorial, fluid. */
+  --type-colossus: clamp(5rem,     14vw, 13rem);  /* §I hero headline only */
+  --type-display:  clamp(3.5rem,    9vw,  8rem);  /* section openers       */
+  --type-h1:       clamp(2.5rem,    6vw,  5rem);
+  --type-h2:       clamp(1.75rem,  3.5vw, 2.75rem);
+  --type-h3:       clamp(1.25rem,    2vw, 1.75rem);
+  --type-lede:     clamp(1.25rem,  1.4vw, 1.5rem);
+  --type-body:     clamp(1rem,     1.1vw, 1.2rem);
+  --type-meta:     0.6875rem;                     /* 11px mono labels      */
+
+  /* Line heights — editorial, not default. */
+  --lh-tight:      0.92;
+  --lh-snug:       1.08;
+  --lh-normal:     1.5;
+  --lh-loose:      1.72;
+
+  /* Letter spacing */
+  --ls-display:   -0.025em;
+  --ls-tight:     -0.015em;
+  --ls-normal:     0em;
+  --ls-mono:       0.06em;
+  --ls-meta:       0.14em;
+
+  /* ─── Spacing rhythm ──────────────────────────────────────
+     Numeric scale for fine-grained spacing, semantic names
+     for page-level rhythm.                                    */
+  --space-1:       0.25rem;
+  --space-2:       0.5rem;
+  --space-3:       1rem;
+  --space-4:       1.5rem;
+  --space-5:       2rem;
+  --space-6:       3rem;
+  --space-7:       4rem;
+  --space-8:       5rem;
+  --space-10:      8rem;
+  --space-12:      12rem;
+
+  --space-section: clamp(6rem,  12vh, 12rem);   /* between sections        */
+  --space-chapter: clamp(10rem, 20vh, 20rem);   /* before chapter pivots   */
+
+  --gutter:        clamp(1.25rem, 4vw, 3rem);
+
+  /* ─── Motion tokens ───────────────────────────────────────
+     These mirror the GSAP eases used in motion.js so CSS
+     transitions feel identical to scripted animations.        */
+  --ease-washi:    cubic-bezier(0.22, 1, 0.36, 1);      /* ≈ power2.out    */
+  --ease-ink:      cubic-bezier(0.65, 0, 0.35, 1);      /* ≈ power2.inOut  */
+  --ease-seal:     cubic-bezier(0.34, 1.56, 0.64, 1);   /* ≈ back.out(1.5) */
+
+  --dur-instant:   120ms;
+  --dur-quick:     350ms;
+  --dur-breath:    800ms;
+  --dur-reveal:    1400ms;
+  --dur-whisper:   2200ms;
+
+  /* ─── Layout measures ─────────────────────────────────────
+     Measures in ch (character units) keep prose readable
+     regardless of font-size.                                  */
+  --measure-narrow: 38ch;
+  --measure-normal: 62ch;
+  --measure-wide:   78ch;
+
+  /* ─── Z-index scale ───────────────────────────────────── */
+  --z-base:        1;
+  --z-content:     10;
+  --z-ui:          100;
+  --z-cursor:      9999;
+}
+
+/* Respect reduced-motion globally by collapsing duration tokens.
+   GSAP also respects this via matchMedia inside motion.js.       */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-instant:  1ms;
+    --dur-quick:    1ms;
+    --dur-breath:   1ms;
+    --dur-reveal:   1ms;
+    --dur-whisper:  1ms;
+  }
+}

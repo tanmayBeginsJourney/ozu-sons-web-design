@@ -1,0 +1,602 @@
+/* ──────────────────────────────────────────────────────────────
+   forge.css — §IV.
+
+   6c step (i): pin scaffolding + discrete stage counter wired.
+   Crossfade scrubbing, ember, highlight sweep, and caption
+   reveals follow in later steps without structural CSS changes.
+
+   The same DOM serves two layouts:
+     • DEFAULT (reduced-motion / ScrollSmoother failed / narrow):
+       two-column contact-sheet grid. Each of the six stages
+       gets its own row; counter is hidden; everything is
+       visible at once. Progressive enhancement per learning #1.
+
+     • PINNED (forge.js decided to wire the pin, added
+       .forge--pinned to the section): the section becomes a
+       100vh stage; captions and plates are absolute-stacked in
+       their respective columns; a single ScrollTrigger pin +
+       onUpdate in forge.js swaps the active stage based on
+       normalized progress. The .forge--pinned class is the
+       SOLE signal for pinned-layout CSS — not
+       html[data-smoother="on"] — because any short-circuit
+       branch in forge.js must also mean "don't apply pinned
+       CSS", and only forge.js knows which branch it took.
+
+   FOUC gate (learning #15): stages 2–6 are hidden from first
+   paint in the pinned scenario so stage 6 doesn't briefly
+   cover stage 1 before JS writes the initial opacity:0 inline.
+   Reduced-motion and narrow viewports opt out of the gate so
+   the contact sheet paints complete from the start.
+   ────────────────────────────────────────────────────────── */
+
+
+/* ─── Shared base rules (both layouts) ────────────────────── */
+
+.forge {
+  /* Natural padding for the contact-sheet layout. The pinned
+     variant zeroes this out via the data-smoother scoping so
+     the inner container fills the viewport exactly. */
+  padding-block: var(--space-chapter) var(--space-section);
+}
+
+.forge__inner {
+  max-width: 1100px;
+  margin-inline: auto;
+}
+
+.forge__counter {
+  font-family: var(--font-mono);
+  font-size: var(--type-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--ink-ash);
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+
+.forge__counter-num,
+.forge__counter-total {
+  display: inline-block;
+  /* Reserve a consistent slot for the 2-digit number so the
+     slash separator doesn't drift as the counter ticks. */
+  min-width: 1.4em;
+  text-align: center;
+}
+
+.forge__caption-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.forge__caption {
+  margin: 0;
+}
+
+.forge__caption-line {
+  font-family: var(--font-display);
+  font-size: var(--type-body);
+  line-height: var(--lh-normal);
+  /* opsz 18 is the pull-quote optical size — slightly more
+     contrast than §III prose, less than a display heading. */
+  font-variation-settings: "opsz" 18, "wght" 380;
+  color: var(--ink-sumi);
+  margin: 0;
+  max-width: 30ch;
+}
+
+.forge__caption-note {
+  font-family: var(--font-mono);
+  font-size: var(--type-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--ink-ash);
+  margin: var(--space-3) 0 0;
+  max-width: 40ch;
+}
+
+.forge__plate {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.forge__plate-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* AI-traced SVG backgrounds were stripped at the file level
+     (learning #36); the page's --ink-washi shows through every
+     fracture line and facet edge. */
+  background: transparent;
+  object-fit: contain;
+}
+
+
+/* ─── Natural-aspect caps (used by reduced-motion layout) ──── */
+
+.forge__plate-img--chunky {
+  /* Stage 1 — tamahagane. Squat ≈2:1 source; cap vertical so
+     it reads as a chunky mass, not a wide pancake. */
+  max-height: 260px;
+  max-width: 600px;
+}
+
+.forge__plate-img--billet {
+  /* Stage 2 — elongated hot billet, ≈4:1 source. Wider than
+     stage 1 but shorter — the intermediate shape. */
+  max-height: 180px;
+  max-width: 100%;
+}
+
+.forge__plate-img--blade {
+  /* Stages 3–6 share a 1024×501 canvas. These render widest
+     and tallest — stage 6 is the narrative climax and earns
+     the largest footprint (learning #37). */
+  max-height: 360px;
+  max-width: 100%;
+}
+
+
+/* ─── FOUC gate ───────────────────────────────────────────────
+   Hide stages 2–6 at first paint so pinned mode never shows
+   stage 6 stacked on top of stage 1 before JS writes the
+   initial hidden state. initForge re-writes opacity:0 inline
+   on stages 2–6 before threshold.js removes html.js-pending
+   — after that the gate no longer matters and the inline
+   styles carry the hidden state through to scroll. */
+
+html.js-pending .forge__plate[data-stage]:not([data-stage="1"]),
+html.js-pending .forge__caption[data-stage]:not([data-stage="1"]) {
+  opacity: 0;
+}
+
+/* Reduced-motion opts out of the gate — forge.js short-circuits
+   before creating the pin, so stages 2–6 must paint immediately. */
+@media (prefers-reduced-motion: reduce) {
+  html.js-pending .forge__plate,
+  html.js-pending .forge__caption {
+    opacity: 1;
+  }
+}
+
+/* Narrow viewports opt out of the gate for the same reason —
+   forge.js skips the pin below 720px and renders the contact
+   sheet, where every stage must be visible. */
+@media (max-width: 720px) {
+  html.js-pending .forge__plate,
+  html.js-pending .forge__caption {
+    opacity: 1;
+  }
+}
+
+
+/* ─── DEFAULT LAYOUT (contact sheet) ──────────────────────────
+   Two-column grid, captions on the left, plates on the right,
+   one row per stage. Applied when ScrollSmoother did not take
+   over (reduced-motion, failed init, or narrow viewport). */
+
+.forge__inner {
+  display: grid;
+  grid-template-columns: [cap] minmax(0, 1fr) [plate] minmax(0, 1.4fr);
+  grid-template-rows: repeat(6, auto);
+  column-gap: var(--space-8);
+  row-gap: var(--space-10);
+  align-items: center;
+}
+
+/* display: contents flattens these wrappers so caption/plate
+   children become direct grid items of .forge__inner, which
+   lets them share rows cleanly across the two columns. */
+.forge__captions,
+.forge__stage,
+.forge__caption-list {
+  display: contents;
+}
+
+/* Counter is only meaningful during the pinned scrub; hidden
+   in the contact sheet where every stage is visible at once. */
+.forge__counter {
+  display: none;
+}
+
+.forge__caption {
+  grid-column: cap;
+}
+
+.forge__plate {
+  grid-column: plate;
+}
+
+/* Explicit row assignment pairs caption-N with plate-N. Without
+   this, auto-flow would put all caps in column cap and all
+   plates in column plate but independently numbered rows. */
+.forge__caption[data-stage="1"], .forge__plate[data-stage="1"] { grid-row: 1; }
+.forge__caption[data-stage="2"], .forge__plate[data-stage="2"] { grid-row: 2; }
+.forge__caption[data-stage="3"], .forge__plate[data-stage="3"] { grid-row: 3; }
+.forge__caption[data-stage="4"], .forge__plate[data-stage="4"] { grid-row: 4; }
+.forge__caption[data-stage="5"], .forge__plate[data-stage="5"] { grid-row: 5; }
+.forge__caption[data-stage="6"], .forge__plate[data-stage="6"] { grid-row: 6; }
+
+
+/* ─── PINNED LAYOUT (forge.js wired the pin) ─────────────────
+   The .forge--pinned class is ONLY applied by forge.js after
+   it has confirmed: (a) reduced-motion is off, (b) smoother is
+   live, (c) viewport is wide. This decouples the CSS layout
+   from html[data-smoother="on"] — without that decoupling,
+   a wide-viewport smoother-on browser that short-circuits on
+   any other condition would render the pinned layout's
+   absolute-stacked plates without JS to animate them, and
+   every plate + caption would collapse into one visual slot.
+
+   One source of truth: the code that creates the pin is the
+   code that flips the layout. */
+
+.forge.forge--pinned {
+  /* Collapse the contact-sheet padding; pin takes over
+     vertical rhythm. The pinSpacing spacer ScrollTrigger
+     inserts will provide scroll runway below. */
+  padding-block: 0;
+}
+
+.forge--pinned .forge__inner {
+  display: grid;
+  grid-template-columns: [cap] minmax(0, 1fr) [plate] minmax(0, 1.4fr);
+  grid-template-rows: 1fr;
+  column-gap: var(--space-8);
+  row-gap: 0;
+  /* 100vh so the pinned block fills the viewport exactly. */
+  height: 100vh;
+  padding-inline: var(--gutter);
+  padding-block: var(--space-chapter);
+  box-sizing: border-box;
+  max-width: 1400px;
+}
+
+.forge--pinned .forge__captions {
+  /* Override display: contents from the default layout so the
+     caption column is a real flex container in pinned mode.
+
+     NOTE on width: justify-self: start was making the flex box
+     shrink to min-content of its *inline-flow* children. The
+     caption-list contains only absolute-positioned captions —
+     zero inline-flow content — so width collapsed to the
+     counter's ~8ch. That's why early screenshots wrapped
+     captions one word per line. Fix: stretch to the full cap
+     track (default justify-self) and cap with max-width. */
+  display: flex;
+  flex-direction: column;
+  grid-column: cap;
+  grid-row: 1;
+  align-self: center;
+  position: relative;
+  width: 100%;
+  max-width: 40ch;
+}
+
+.forge--pinned .forge__counter {
+  display: block;
+  margin: 0 0 var(--space-6);
+}
+
+.forge--pinned .forge__caption-list {
+  /* Override display: contents; become a real positioning
+     context so absolute-stacked captions can share one slot.
+     Explicit width: 100% so captions inside with inset:0 have
+     a real measure to flow into. */
+  display: block;
+  position: relative;
+  width: 100%;
+  /* Reserve enough height for the longest caption at display
+     size — two to three lines of pull-quote plus the mono
+     note. Prevents the plate column from reflowing on stage
+     change. */
+  min-height: 11rem;
+}
+
+.forge--pinned .forge__caption {
+  position: absolute;
+  inset: 0;
+  /* Reset the row/column assignments the default layout uses
+     — inside the absolute-positioned parent those properties
+     have no effect anyway, but kept explicit for clarity. */
+  grid-row: auto;
+  grid-column: auto;
+}
+
+/* Pinned captions are display pull-quotes, not label text. The
+   contact-sheet base rules ship at type-body (compact diagram
+   labels); here we upscale to an h2-adjacent clamp and tighten
+   letter-spacing for editorial presence. The measure drops to
+   22ch so lines break in meaningful places ("1450°C," / "folded
+   over and over.") rather than mid-phrase. */
+.forge--pinned .forge__caption-line {
+  font-size: clamp(1.75rem, 2.4vw, 2.5rem);
+  font-variation-settings: "opsz" 30, "wght" 380;
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-tight);
+  max-width: 22ch;
+}
+
+.forge--pinned .forge__caption-note {
+  font-size: 0.8125rem;
+  max-width: 32ch;
+  margin-top: var(--space-5);
+}
+
+.forge--pinned .forge__stage {
+  display: block;
+  grid-column: plate;
+  grid-row: 1;
+  position: relative;
+  align-self: stretch;
+  height: 100%;
+}
+
+.forge--pinned .forge__plate {
+  position: absolute;
+  inset: 0;
+  grid-row: auto;
+  grid-column: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
+/* In pinned mode, plate heights scale to the stage column so
+   the knife (stage 6) earns the largest footprint — the
+   narrative climax gets visual priority (learning #37). Raw
+   material reads heavy via bulk, not via outsized width. */
+.forge--pinned .forge__plate-img {
+  max-height: 100%;
+}
+.forge--pinned .forge__plate-img--chunky {
+  max-height: 60%;
+  max-width: 60%;
+}
+.forge--pinned .forge__plate-img--billet {
+  max-height: 42%;
+  max-width: 85%;
+}
+.forge--pinned .forge__plate-img--blade {
+  max-height: 72%;
+  max-width: 100%;
+}
+
+
+/* ─── Ember (masked warmth, hot stages only) ─────────────────
+   §IV 6c step (iii).
+
+   The ember span sits as a sibling of the plate-img inside the
+   figure, absolutely positioned and sized with the SAME aspect-
+   ratio + max-height/max-width as the img. With identical sizing
+   constraints and a square bounding container (the figure), both
+   the img (via object-fit:contain) and the ember (via explicit
+   aspect + max) render at exactly the same box — so the CSS
+   mask-image (the plate's OWN SVG) aligns pixel-perfectly with
+   what the img paints.
+
+   Only two stages get an ember DOM node: stage 2 (--billet) at
+   1450°C, stage 3 (--blade) radiating during rough-forging. The
+   other four stages have no ember span at all — their ember
+   opacity is effectively zero by absence. Editorial discipline:
+   stage 4 (the quench) must not carry lingering heat or the
+   narrative cut is muddied.
+
+   mix-blend-mode: screen lightens the near-black silhouette into
+   glowing orange metal; outside the mask (alpha 0 in the SVG)
+   nothing is painted, so the washi background is never tinted.
+
+   Scoped to .forge--pinned only. In the contact-sheet and narrow
+   layouts the ember is display: none — it's a cinematic beat,
+   not a diagram label. */
+
+.forge__plate-ember {
+  display: none;
+}
+
+.forge--pinned .forge__plate-ember {
+  display: block;
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  /* Warm radial that fills the ENTIRE mask box. No explicit
+     ellipse size (so it defaults to farthest-corner of the box)
+     and no transparent end stop (so every pixel gets at least
+     the deep-red edge color). With the SVG mask clipping to the
+     silhouette, the whole silhouette glows — not just a hot-spot
+     blob at center. The gradient exists only to add subtle
+     depth (hotter core, cooler tang) so the shape doesn't read
+     as flat poster-red. */
+  background: radial-gradient(
+    ellipse at center,
+    #ff8a3a 0%,
+    #e85525 50%,
+    #a83016 100%
+  );
+  mix-blend-mode: screen;
+  /* Mask clips ember to the plate's own silhouette. --plate-src
+     is set inline per-plate in index.html to point at the stage's
+     own SVG. Both prefixed and standard properties for Safari. */
+  -webkit-mask-image: var(--plate-src);
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-image: var(--plate-src);
+  mask-position: center;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+}
+
+/* Sizing rules mirror the corresponding .forge__plate-img--*
+   rules above so the ember box coincides with the img box. The
+   aspect-ratio pins the box to the SVG's natural viewBox ratio
+   (blob2: 1160×285; s3: 1024×501) so max-width AND max-height
+   are both honored without squashing. */
+.forge--pinned .forge__plate-ember--billet {
+  max-height: 42%;
+  max-width: 85%;
+  width: 85%;
+  aspect-ratio: 1160 / 285;
+}
+.forge--pinned .forge__plate-ember--blade {
+  max-height: 72%;
+  max-width: 100%;
+  width: 100%;
+  aspect-ratio: 1024 / 501;
+}
+
+
+/* ─── Polish highlight sweep (stage 5) ───────────────────────
+   §IV 6c step (iv).
+
+   A narrow specular band traverses the polished blade left-to-
+   right. The band is drawn as a linear-gradient with most of
+   its length transparent — only the 45–55% strip carries alpha
+   — and the whole thing is painted at 2× the element width
+   (background-size: 200% 100%) so backgroundPosition can scroll
+   it from 150% (band offscreen right) to -50% (offscreen left).
+   forge.js drives the animation with gsap.fromTo.
+
+   The mask is s5.svg (same pattern as ember) so the highlight
+   only paints inside the polished blade silhouette. mix-blend-
+   mode: screen lightens the mid-tone steel into a perceptible
+   but subdued highlight — observation pace, not disco.
+
+   Scoped to .forge--pinned; hidden in contact sheet. */
+
+.forge__plate-sweep {
+  display: none;
+}
+
+.forge--pinned .forge__plate-sweep {
+  display: block;
+  position: absolute;
+  pointer-events: none;
+  background-image: linear-gradient(
+    100deg,
+    transparent 0%,
+    transparent 42%,
+    rgba(255, 248, 230, 0.35) 48%,
+    rgba(255, 252, 240, 0.55) 50%,
+    rgba(255, 248, 230, 0.35) 52%,
+    transparent 58%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  background-position: 150% 50%;
+  -webkit-mask-image: var(--plate-src);
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-image: var(--plate-src);
+  mask-position: center;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mix-blend-mode: screen;
+  /* GPU hint: backgroundPosition updates 60×/s while the pin is
+     engaged, so promote to its own layer to avoid repainting
+     the parent stack each frame. */
+  will-change: background-position;
+}
+
+.forge--pinned .forge__plate-sweep--blade {
+  max-height: 72%;
+  max-width: 100%;
+  width: 100%;
+  aspect-ratio: 1024 / 501;
+}
+
+
+/* ─── Narrow viewports ────────────────────────────────────────
+   Below 720px, collapse to a single column in document order
+   (caption-1, plate-1, caption-2, plate-2, …). Pinned-mode
+   rules are also collapsed here so that if a user resizes down
+   while inside a pin, the layout degrades to stacked blocks
+   (JS won't recreate the pin until reload, but the CSS makes
+   the intermediate state legible). */
+
+@media (max-width: 720px) {
+  /* Below 720px, forge.js short-circuits before creating the
+     pin and does NOT add .forge--pinned. The only selectors
+     that need overriding are the non-pinned defaults — but we
+     re-assert them defensively against any stale .forge--pinned
+     class that might linger from a wider initial viewport.    */
+  .forge__inner,
+  .forge--pinned .forge__inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    column-gap: 0;
+    row-gap: var(--space-8);
+    height: auto;
+    padding-block: var(--space-chapter);
+    padding-inline: var(--gutter);
+  }
+
+  .forge__caption,
+  .forge__plate,
+  .forge--pinned .forge__caption,
+  .forge--pinned .forge__plate {
+    position: static;
+    inset: auto;
+    grid-column: 1;
+  }
+
+  .forge--pinned .forge__captions {
+    display: contents;
+  }
+  .forge--pinned .forge__stage {
+    display: contents;
+    height: auto;
+  }
+  .forge--pinned .forge__caption-list {
+    display: contents;
+    min-height: 0;
+  }
+  .forge--pinned .forge__counter {
+    display: none;
+  }
+
+  /* Interleaved stacking: caption-N then plate-N repeating.
+     Rows 1..12 give document-order presentation on narrow. */
+  .forge__caption[data-stage="1"] { grid-row: 1; }
+  .forge__plate[data-stage="1"]   { grid-row: 2; }
+  .forge__caption[data-stage="2"] { grid-row: 3; }
+  .forge__plate[data-stage="2"]   { grid-row: 4; }
+  .forge__caption[data-stage="3"] { grid-row: 5; }
+  .forge__plate[data-stage="3"]   { grid-row: 6; }
+  .forge__caption[data-stage="4"] { grid-row: 7; }
+  .forge__plate[data-stage="4"]   { grid-row: 8; }
+  .forge__caption[data-stage="5"] { grid-row: 9; }
+  .forge__plate[data-stage="5"]   { grid-row: 10; }
+  .forge__caption[data-stage="6"] { grid-row: 11; }
+  .forge__plate[data-stage="6"]   { grid-row: 12; }
+
+  .forge__plate-img--chunky,
+  .forge--pinned .forge__plate-img--chunky {
+    max-height: 180px;
+    max-width: 100%;
+  }
+  .forge__plate-img--billet,
+  .forge--pinned .forge__plate-img--billet {
+    max-height: 130px;
+    max-width: 100%;
+  }
+  .forge__plate-img--blade,
+  .forge--pinned .forge__plate-img--blade {
+    max-height: 240px;
+    max-width: 100%;
+  }
+
+  /* Ember and sweep are pinned-only cinematic beats; stay hidden
+     on narrow even if .forge--pinned lingers from a wider initial
+     viewport. */
+  .forge--pinned .forge__plate-ember,
+  .forge--pinned .forge__plate-sweep {
+    display: none;
+  }
+}

@@ -1,0 +1,94 @@
+/* ──────────────────────────────────────────────────────────────
+   reset.css — modern CSS reset
+   Hand-authored reset, inspired by Andy Bell's modern-reset and
+   Josh Comeau's custom reset. Adapted for editorial typography:
+   headings do not inherit bold by default, text-wrap primitives
+   are enabled, and focus rings use our ink-sumi token.
+   ────────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body,
+h1, h2, h3, h4, h5, h6,
+p, figure, blockquote, dl, dd {
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  line-height: var(--lh-normal);
+}
+
+/* Editorial headings: weight is a deliberate design choice, never default-bold. */
+h1, h2, h3, h4, h5, h6 {
+  line-height: var(--lh-tight);
+  text-wrap: balance;
+  font-weight: 400;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+img,
+picture,
+svg,
+video,
+canvas {
+  max-width: 100%;
+  display: block;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 1px solid var(--ink-sumi);
+  outline-offset: 4px;
+}
+
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+  padding: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

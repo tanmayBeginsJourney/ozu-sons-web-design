@@ -1,0 +1,21 @@
+{
+  "name": "ozu-and-sons",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Ozu & Sons — a single-page monograph. Four generations, one blade at a time. Sakai, Japan.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host"
+  },
+  "dependencies": {
+    "@fontsource-variable/fraunces": "^5.2.0",
+    "@fontsource-variable/jetbrains-mono": "^5.2.0",
+    "@fontsource/shippori-mincho-b1": "^5.2.0",
+    "gsap": "^3.13.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}

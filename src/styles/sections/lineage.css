@@ -1,0 +1,325 @@
+/* ──────────────────────────────────────────────────────────────
+   lineage.css — §III. Four generations stacked vertically.
+
+   Composition: each generation is a four-part block — year (mono),
+   name (display), role (italic caption), pull quote (italic,
+   offset right of the name's left axis). A single variable-width
+   brush-stroke runs the full height of the section in the left
+   gutter, connecting all four.
+
+   Constitutional constraint: only the current (4th) generation's
+   hanko is rendered in --ink-hanko red. The three ancestors'
+   stamps are in --ink-sumi. This is the first of the page's two
+   earned red moments — the living maker is still sealing.
+   ────────────────────────────────────────────────────────────── */
+
+.lineage {
+  position: relative;
+  /* Generous vertical breath so each generation feels like a page-
+     turn, not a list item. Matches the chapter-to-section rhythm
+     established by §II. */
+  padding-block: var(--space-chapter) var(--space-section);
+}
+
+/* Pre-reveal gate. Inline <head> script adds html.js-pending before
+   first paint; lineage.js's synchronous gsap.set writes inline styles
+   that outrank these rules. The gate is removed by threshold.js
+   after ALL section modules (place, lineage, threshold) have queued
+   their synchronous state — ordering owned by main.js per learning
+   #24. Under reduced-motion the gate disables itself so base CSS
+   values apply directly. */
+html.js-pending .lineage__head,
+html.js-pending .lineage__name,
+html.js-pending .lineage__role,
+html.js-pending .lineage__quote {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.js-pending .lineage__head,
+  html.js-pending .lineage__name,
+  html.js-pending .lineage__role,
+  html.js-pending .lineage__quote {
+    opacity: 1;
+  }
+}
+
+/* ─── Left-gutter brush-line ──────────────────────────────────
+   Absolute-positioned full section height. viewBox 40×1000 plus
+   preserveAspectRatio="none" on the SVG element stretches the
+   path vertically without distorting the bristle filter (the
+   turbulence is applied to the rasterized silhouette per paint,
+   so anamorphic scaling doesn't smear the noise).
+
+   The path is a CLOSED FILLED shape, not a stroked line — that
+   is what gives us variable width along the length. Left edge
+   and right edge of the silhouette are authored independently
+   so the brush is asymmetric; a CSS width on a div can't do
+   this, and a stroked path forces uniform width.
+
+   Base opacity is 0.18 — visible from first paint (progressive
+   enhancement per learning #23). Motion later adds scroll-driven
+   density bands along the line; the line is never drawn in and
+   out. */
+.lineage__brush {
+  position: absolute;
+  top: var(--space-chapter);
+  /* Sits just inside the gutter's inner edge, not flush against
+     it — gives the brush air between itself and the viewport. */
+  left: calc(var(--gutter) * 0.55);
+  width: 28px;
+  /* Explicit height — NOT top+bottom pinning. SVG is a replaced
+     element with an intrinsic aspect ratio derived from viewBox
+     (40:1000 = 0.04). When width:28px is set and height is auto,
+     the browser computes height from the intrinsic ratio
+     (28 × 1000/40 = 700px) and that wins over top+bottom pins,
+     so the brush gets stuck at exactly 700px regardless of how
+     tall §III actually is — it visibly terminates mid-2nd-gen
+     on a desktop-height section. This caught me the first time.
+     calc(100% - top-padding - bottom-padding) targets the
+     padding-box height of .lineage (section total) and subtracts
+     both padding values so the SVG spans the content area. */
+  height: calc(100% - var(--space-chapter) - var(--space-section));
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Brush shared silhouette paint. Both <use> passes inherit fill +
+   filter from here; the per-pass modifiers set opacity. Keeping
+   the filter on both passes means the edge noise is consistent
+   across density changes — the band sliding down doesn't reveal
+   a suddenly-crisp outline. */
+.lineage__brush-path {
+  fill: var(--ink-sumi);
+  filter: url(#ink-wash);
+}
+
+/* Base pass — always visible at low density. First paint shows
+   this alone; motion layers the dense overlay on top. */
+.lineage__brush-path--base {
+  opacity: 0.18;
+}
+
+/* Dense pass — overlay, visible only where the mask band sits.
+   Total composited density peaks at ~0.88 (0.18 base + 0.7 overlay
+   through the mask's opaque gradient centre). Reads as "the brush
+   thickens here," not as a separate stroke. */
+.lineage__brush-path--dense {
+  opacity: 0.7;
+}
+
+/* ─── Content column ─────────────────────────────────────────
+   Offset right of the brush gutter. Max-width keeps names and
+   quotes on their own measures; no generation competes for
+   horizontal real estate with the brush. */
+.lineage__column {
+  position: relative;
+  z-index: 1;
+  /* Leave 5–7vw after the brush-line for breathing room. */
+  margin-inline-start: clamp(3rem, 8vw, 7rem);
+  max-width: 58ch;
+  display: flex;
+  flex-direction: column;
+  /* Between-generation rhythm. space-10 = 8rem. Closer than
+     between-sections, farther than within-block — each
+     generation gets its own breath. */
+  gap: var(--space-10);
+}
+
+.lineage__generation {
+  position: relative;
+  /* Hanko fill cascades from currentColor on the SVG. Default
+     color for the block is sumi (the three ancestors). */
+  color: var(--ink-sumi);
+}
+
+/* Current (4th) generation: the hanko alone switches to red.
+   Rest of the block (year, name, role, quote) stays in sumi —
+   we scope the color override to the .lineage__hanko selector
+   so only the seal changes color. This is what makes the red
+   a single-element moment, not a generation-wide tint. */
+.lineage__generation--current .lineage__hanko {
+  color: var(--ink-hanko);
+}
+
+/* ─── Header row (year + hanko) ──────────────────────────────
+   Year sits left, hanko stamps the right. Flex baseline so
+   the tiny mono year optically aligns to the hanko's lower
+   edge, not its top — they read as belonging to the same
+   caption bar.
+
+   Hair-thin bottom rule in sumi at 12% alpha acts as a caption
+   underline separating header from name. Not a box, not a
+   card border — just a ruled line the way a museum label has
+   a rule between year-plate and title. */
+.lineage__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-block-end: var(--space-3);
+  border-block-end: 1px solid var(--ink-sumi-12);
+  padding-block-end: var(--space-3);
+}
+
+.lineage__years {
+  /* Mono year inherits size/tracking from .meta utility.
+     tabular-nums so digits align vertically across all four
+     generations when the eye scans down the column. */
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-ash);
+  margin: 0;
+}
+
+/* ─── Hanko stamp ────────────────────────────────────────────
+   Square SVG, ~4-4.75rem. fill takes currentColor, so the
+   enclosing generation's color drives the ink. Two-pass
+   (base + echo with different filter seeds) per learning #28
+   so every stamp feels physically pressed. Red earns its
+   moment through COLOR, not through extra filter layering —
+   every seal on the page gets equal craft treatment. */
+.lineage__hanko {
+  width: clamp(3.5rem, 5vw, 4.75rem);
+  height: clamp(3.5rem, 5vw, 4.75rem);
+  overflow: visible;
+  flex-shrink: 0;
+}
+
+/* Frame base pass — opaque with ink-wash turbulence seed A.
+   currentColor pulls the sumi-or-red value from the parent. */
+.lineage__hanko-frame--base {
+  fill: currentColor;
+  opacity: 0.95;
+  filter: url(#ink-wash);
+}
+
+/* Frame echo pass — lower opacity, slight offset, DIFFERENT
+   turbulence seed (ink-wash-echo). The two uncorrelated
+   displacement fields give a "pressed twice" feel; same
+   filter on both would produce a clean drop-shadow copy,
+   which is exactly the execution trap learning #9 warns
+   against. */
+.lineage__hanko-frame--echo {
+  fill: currentColor;
+  opacity: 0.28;
+  transform: translate(1.2px, 0.8px);
+  transform-origin: center;
+  filter: url(#ink-wash-echo);
+}
+
+/* Kanji inside the seal. Shippori Mincho (var(--font-japanese)),
+   weight 500 for a carved-seal feel (not a paper-set weight).
+   x=50, y=72 in the 100-unit viewBox sits the character on an
+   optical centre line; Japanese glyphs are metric-centered
+   slightly below the Latin cap-height centre, so a baseline at
+   72% of box height reads as "centered" to Japanese eyes. */
+.lineage__hanko-char {
+  font-family: var(--font-japanese);
+  font-weight: 500;
+  font-size: 60px;
+  fill: currentColor;
+  text-anchor: middle;
+  dominant-baseline: alphabetic;
+}
+
+.lineage__hanko-char--base {
+  opacity: 0.95;
+  filter: url(#ink-wash);
+}
+
+.lineage__hanko-char--echo {
+  opacity: 0.28;
+  transform: translate(1.2px, 0.8px);
+  transform-origin: center;
+  filter: url(#ink-wash-echo);
+}
+
+/* ─── Name ───────────────────────────────────────────────────
+   Display scale, NOT colossus — a person's name, not a section
+   opener. Fraunces opsz 48 at this rendered size keeps the
+   serifs and modulation right for a "plate under a portrait"
+   register. */
+.lineage__name {
+  font-family: var(--font-display);
+  font-size: var(--type-h1);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-tight);
+  font-variation-settings: "opsz" 48, "wght" 360;
+  color: var(--ink-sumi);
+  margin: 0;
+}
+
+/* ─── Role ───────────────────────────────────────────────────
+   A single editorial line below the name — body scale, italic,
+   ash-toned. A caption under a portrait, not a paragraph. */
+.lineage__role {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--type-body);
+  line-height: var(--lh-normal);
+  font-variation-settings: "opsz" 14, "wght" 340;
+  color: var(--ink-ash);
+  margin: var(--space-3) 0 0;
+  max-width: 44ch;
+}
+
+/* ─── Pull quote ─────────────────────────────────────────────
+   Italic, offset RIGHT of the name's left edge. Asymmetric
+   indent is the composition move here — year/name/role share a
+   left axis; the quote steps right so the block doesn't read
+   as a form field stack. 18% of the column width is a
+   deliberate stepped indent, not a hanging indent.
+
+   Color is sumi at 80% so quotes whisper rather than project —
+   the maker's voice, not an advertisement of it. */
+.lineage__quote {
+  margin: var(--space-6) 0 0;
+  margin-inline-start: 18%;
+  max-width: 34ch;
+  color: var(--ink-sumi-80);
+  /* A hair of extra tracking opens the italic slightly so
+     typographic quotes don't crowd the first glyph. */
+  letter-spacing: 0.005em;
+}
+
+/* SplitText wraps each rendered quote line in a span with this
+   class (via linesClass in lineage.js). Block display is required
+   for clip-path + transforms to behave; overflow visible lets
+   italic descenders clear the reveal the same way §II's
+   .place__line does. */
+.lineage__quote-line {
+  display: block;
+  overflow: visible;
+}
+
+/* ─── Narrow viewports ───────────────────────────────────────
+   On phones the brush-line loses its gutter authority and the
+   column needs to reclaim horizontal room. Brush shrinks to
+   14px and sits closer to the edge; column margin-start
+   collapses; the quote's stepped indent softens to 8% so the
+   asymmetry reads on a 320-wide viewport without squeezing
+   the quote below its measure. */
+@media (max-width: 720px) {
+  .lineage {
+    padding-block: var(--space-section);
+  }
+
+  .lineage__brush {
+    width: 14px;
+    left: calc(var(--gutter) * 0.4);
+    /* Mobile padding-block is a single --space-section (symmetric
+       top/bottom), so top + height must match. Desktop's larger
+       --space-chapter top is not used on narrow viewports. */
+    top: var(--space-section);
+    height: calc(100% - var(--space-section) * 2);
+  }
+
+  .lineage__column {
+    margin-inline-start: clamp(1.5rem, 7vw, 3rem);
+    gap: var(--space-8);
+  }
+
+  .lineage__quote {
+    margin-inline-start: 8%;
+  }
+}

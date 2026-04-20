@@ -1,0 +1,223 @@
+/* ──────────────────────────────────────────────────────────────
+   place.css — §II. The place.
+   Composition: asymmetric spread. A giant 堺 pressed into the
+   paper, slightly rotated and cropped at the left edge. Behind
+   it, a soft sumi ink-wash blob. Over it (to the right), a
+   narrow editorial column of prose.
+
+   The cliché execution of this section is "big Japanese
+   character centered behind centered paragraph." We are
+   explicitly not doing that — every element is offset from the
+   axis the next element expects it on.
+   ────────────────────────────────────────────────────────────── */
+
+.place {
+  /* Full viewport height so the kanji has room to dominate; the
+     prose column sits at vertical center, which is not where the
+     eye expects prose to sit (usually top of its section). The
+     vertical centering contributes to the "museum vitrine" feel. */
+  min-height: 100svh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-block: var(--space-chapter) var(--space-section);
+}
+
+/* Pre-reveal gate. Inline <head> script adds html.js-pending before
+   first paint; place.js's synchronous gsap.set writes inline styles
+   that outrank these rules. The gate is removed by threshold.js
+   after ITS gsap.set is queued; by then §II targets already have
+   inline opacity:0 so no flash occurs.
+
+   Blob is intentionally NOT gated: its final opacity is only 0.055,
+   so a fade-in is imperceptible — kept at static value always.
+   Kanji (container) stays opacity:1 after JS runs; its contents are
+   hidden by the mask circle at r=0, so this gate only covers the
+   case where JS hasn't run yet. Under reduced-motion the gate
+   disables itself and base CSS values apply directly. */
+html.js-pending .place__prose,
+html.js-pending .place__kanji {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.js-pending .place__prose,
+  html.js-pending .place__kanji {
+    opacity: 1;
+  }
+}
+
+/* ─── Watermark layer ────────────────────────────────────────
+   Absolute-positioned full-bleed container for the ambient blob,
+   the 堺 character, and the two overlay paths. overflow: hidden
+   is how we get the "15% cropped off-frame" effect — the kanji
+   is authored large and positioned so its left edge sits at
+   negative-x relative to the section. This is deliberate; do
+   not "fix" it by shrinking the kanji to fit. */
+.place__watermark {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Sumi ink-wash blob ─────────────────────────────────────
+   Sits behind the kanji. Intentional shape imperfection: the
+   path is not an ellipse; it's four uneven cubic segments that
+   form an asymmetric puddle. Low opacity + heavy CSS blur so
+   it reads as diffused pigment, not a shape. 0.3°/sec rotation
+   is applied in JS at 6c, not here. */
+.place__blob {
+  position: absolute;
+  /* Offset the blob from the kanji's geometric center so they
+     don't share an optical axis — the illusion of two separate
+     marks on the paper, not one composite icon. */
+  top: 42%;
+  left: 8vw;
+  width: 62vw;
+  height: 62vw;
+  transform: translateY(-50%);
+  color: var(--ink-sumi);
+  /* Kept low so the paper underneath is still the dominant tone.
+     Blur softens the path edges into the page. */
+  opacity: 0.055;
+  filter: blur(46px);
+}
+
+/* ─── Kanji glyph ────────────────────────────────────────────
+   Positioned so its left ~14% sits past the viewport edge — the
+   character is not a framed icon, it's a mark on paper that
+   extends beyond the page. Rotated -1.2° off axis.
+
+   overflow: visible on the SVG lets the fleck and tail extend
+   past the viewBox box if they want to. */
+.place__kanji {
+  position: absolute;
+  top: 50%;
+  left: -14vw;
+  width: 78vw;
+  height: 78vw;
+  transform: translateY(-50%) rotate(-1.2deg);
+  transform-origin: center;
+  color: var(--ink-sumi);
+  overflow: visible;
+}
+
+/* Shared setup for both kanji text passes. Shippori Mincho B1
+   is the font the Design Constitution specifies for Japanese.
+   font-size in SVG user units, scaled by the viewBox to the
+   actual rendered size via the SVG's width. */
+.place__kanji-layer {
+  font-family: var(--font-japanese);
+  font-weight: 400;
+  font-size: 880px;
+  fill: currentColor;
+  text-anchor: middle;
+}
+
+/* Base pass: full opacity, first filter seed. This is the
+   "pressed cleanly" impression of the character. */
+.place__kanji-layer--base {
+  opacity: 0.92;
+  filter: url(#ink-wash);
+}
+
+/* Echo pass: the same character rendered at ~24% opacity,
+   offset by a hair, with a DIFFERENT filter seed. Reads as
+   a second, imperfectly aligned press — the kind you get
+   when you re-ink a seal and press again to deepen it. Where
+   the two passes align, ink is denser; where they don't,
+   lighter. This is what separates this from a dropshadow.
+
+   If on preview this reads as blurry or smeared (rather than
+   "pressed twice"), lower opacity to 0.14 or remove this
+   element entirely — the base pass + overlays are sufficient. */
+.place__kanji-layer--echo {
+  opacity: 0.24;
+  transform: translate(4px, 3px);
+  transform-origin: center;
+  filter: url(#ink-wash-echo);
+}
+
+/* ─── Overlay paths ──────────────────────────────────────────
+   Two hand-authored marks layered on the glyph: a tail that
+   extends past a natural stroke terminus, and a small fleck
+   offset from the character body. Positions are eyeballed
+   against Shippori Mincho's 堺 at font-size 880 in a 1000px
+   viewBox — they may need tuning after preview.
+
+   Filter url(#ink-wash) is the same as the base glyph so the
+   overlays read as part of the same press, not as decorative
+   additions. */
+.place__kanji-tail,
+.place__kanji-fleck {
+  fill: var(--ink-sumi);
+  opacity: 0.78;
+  filter: url(#ink-wash);
+}
+
+/* ─── Prose column ───────────────────────────────────────────
+   Sits on top of the watermark. Pushed to the right of center
+   (margin-inline-start: auto) so it's offset from the kanji's
+   optical axis, which is itself offset-left. Right margin in
+   vw so the column has breathing room at the outer edge. */
+.place__column {
+  position: relative;
+  z-index: 2;
+  margin-inline-start: auto;
+  margin-inline-end: clamp(1.5rem, 6vw, 6rem);
+  max-width: var(--measure-narrow);
+}
+
+.place__prose {
+  color: var(--ink-sumi);
+  /* Override the opsz token from the .prose utility for §II's
+     slightly larger prose scale (still body, but the section's
+     editorial weight warrants a beat more presence). */
+  font-variation-settings: "opsz" 18, "wght" 380;
+}
+
+/* SplitText lines mode wraps each rendered line in a span with
+   this class (configured via linesClass in place.js). Block
+   display makes clip-path + transforms behave; overflow visible
+   lets italic descenders survive the clip reveal the same way
+   §I's word reveals do. */
+.place__line {
+  display: block;
+  overflow: visible;
+}
+
+/* ─── Narrow viewports ───────────────────────────────────────
+   On phones the asymmetric composition breaks — there's no
+   room for a kanji to be -14vw off-screen AND a column to sit
+   right-offset of it. Collapse to a stacked layout: kanji
+   centered + very wide (deliberately uncomfortably large), prose
+   centered over it. Asymmetry is a desktop luxury. */
+@media (max-width: 720px) {
+  .place {
+    padding-block: var(--space-section);
+  }
+
+  .place__kanji {
+    left: -8vw;
+    top: 50%;
+    width: 116vw;
+    height: 116vw;
+  }
+
+  .place__blob {
+    left: -10vw;
+    top: 50%;
+    width: 120vw;
+    height: 120vw;
+    opacity: 0.07;
+  }
+
+  .place__column {
+    margin-inline: auto;
+    /* At narrow widths, step down prose size a hair so it does
+       not overwhelm the collapsed composition. */
+    font-size: var(--type-body);
+  }
+}
