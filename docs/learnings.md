@@ -152,18 +152,14 @@ General rule: ALWAYS author the FINAL VISIBLE state in HTML, let JS write the HI
 
 ## 24. FOUC GATE REMOVAL IS CROSS-SECTION COORDINATED — FRAGILE
 
-`html.js-pending` is currently removed by the FIRST section module's init (`threshold.js`, at the end of its synchronous path). This works for §I and §II because:
-- `initPlace` runs BEFORE `initThreshold` in `main.js` (deliberate order; critical).
-- `initPlace`'s SYNCHRONOUS `gsap.set` writes inline `opacity: 0` on §II targets.
-- Then `initThreshold` does its own `gsap.set` and removes `js-pending`.
-- At the removal moment, §II targets already carry inline styles that outrank the removed CSS gate.
+`html.js-pending` is removed by `releaseRevealGate()` in `main.js`, called immediately after `initThreshold()` (Step 7 refactor). This works because every section init that needs the gate runs earlier in `main.js` and queues its synchronous `gsap.set` (inline hidden state) before the gate lifts. `initThreshold` stays last among section inits so `ScrollTrigger.refresh()` sees §I SplitText; the gate is released in the same synchronous turn, after threshold's initial `gsap.set` on §I targets.
 
-For §II specifically there's a secondary subtlety: the SplitText + per-line hide path is ASYNC (waits for `document.fonts.ready`). The prose CONTAINER carries an inline `opacity: 0` during the wait so no frame shows the full paragraph at final opacity. This pattern must be repeated in any section with font-dependent async init.
+For §II specifically: the SplitText + per-line hide path is ASYNC (waits for `document.fonts.ready`). The prose CONTAINER carries an inline `opacity: 0` during the wait so no frame shows the full paragraph at final opacity. This pattern must be repeated in any section with font-dependent async init.
 
-FOR THE NEXT AGENT (§III onward):
-- Keep `initThreshold` as the LAST synchronous init call. All section modules whose init runs BEFORE threshold must set their inline `opacity: 0` synchronously, even if their real async work (font-dependent SplitText, etc.) runs later.
-- If §III has ink-line-pressure scroll effects, its synchronous init must also set the initial low-opacity state.
-- CONSIDER A STEP 7 REFACTOR: move gate-removal out of `threshold.js` into `main.js` as a final step after all section inits have queued their synchronous `gsap.set`s. This removes the load-bearing ordering constraint. Current approach works but is one-edit-away from a regression.
+FOR NEW SECTIONS:
+- Add `initYourSection()` before `initThreshold` in `main.js` if the section uses the FOUC gate.
+- Set inline `opacity: 0` (or equivalent) synchronously at the start of init, even when font-dependent SplitText runs later.
+- Do not remove `js-pending` inside a section module — only `releaseRevealGate()` in `main.js` does that.
 
 ## 25. SVG RADIAL MASK + ANIMATED `attr:{r:...}` IS A REAL REVEAL PRIMITIVE
 
@@ -432,3 +428,35 @@ Symptom to diagnose quickly: filter applied, source element appears invisible, r
 Related gotcha observed in the same build: `stroke-width="1"` on a `<line>` inside an SVG with `preserveAspectRatio="none"` and a vertical viewBox-to-CSS scale < 1 renders as a sub-pixel stroke (~0.75 CSS px) and effectively vanishes into the background. Fix: either match the SVG's CSS height to its viewBox height so scaling is 1:1 (§VI's baseline is now `height: 4px` for a viewBox height of 4), or bump stroke-width high enough to survive the squish. `vector-effect="non-scaling-stroke"` looks like a clean fix BUT interacts badly with feDisplacementMap — the stroke bypasses the filter's coordinate space and the displaced result appears as a void. Do not combine `vector-effect="non-scaling-stroke"` with a displacement filter.
 
 Reusable for: any future hand-drawn SVG ruling lines, underlines, or axis ticks — form fields, tables, charts. Keep the §VI pattern (userSpaceOnUse + honest viewBox-to-CSS scale + stroke-width in viewBox units) as the baseline for all `<line>`-based ink applications on this site.
+
+---
+
+## Additions from the page-wide grain + §VII agents
+
+## 45. PAGE-WIDE PAPER GRAIN — PAINT IT ON `body`, NOT A PSEUDO-ELEMENT STACK
+
+Early attempts used `body::before` with `position: fixed`, `mix-blend-mode: multiply`, and low `opacity`, stacked against `#smooth-wrapper` with `z-index`. Outcomes: near-invisible texture and/or fragile stacking with ScrollSmoother's fixed wrapper.
+
+**Shipped approach:** `body` carries `background-color: var(--ink-washi)` (from `typography.css`) **and** `background-image` (tiled SVG fractal noise, base64 in `layout.css`; editable source `scripts/grain.svg`). `background-blend-mode: multiply` blends the noise layer with the washi color in one paint stack — no sibling ordering tricks. `background-attachment: fixed` pins fibre to the viewport while long content scrolls. `#smooth-wrapper` uses `position: relative; z-index: 1` so main content stacks above the canvas background (transparent regions show the blended grain).
+
+**Encoding:** prefer base64 data URLs over raw `utf8,<svg...` in CSS — some engines parse embedded `<` / `#` unreliably.
+
+**Retired:** §VI's heavier `.invitation::before` grain and its `isolation: isolate` — the isolate context blocked the page blend from reading through that section.
+
+## 46. MULTIPLY GRAIN VS FINE MONO — DARKER INK + MICRO HALO
+
+After grain landed, **11px JetBrains mono in `--ink-ash`** (~`#6B6259`) became illegible: speckle contrast competed with thin strokes.
+
+**Shipped mitigation:** (1) `--ink-meta` — a darker brown-grey than `--ink-ash`, used for `.meta` and other meta-scale mono labels. (2) `--shadow-fine-on-washi` — a soft multi-layer `text-shadow` in washi-tinted rgba so glyph edges separate from the noise without a visible "glow." Applied via `.meta` in `typography.css` and duplicated where selectors restate mono caption rules (`forge__counter`, `forge__caption-note`, `.lineage__years`).
+
+Large display type in sumi or ash at reading sizes was less affected; tune per section in Step 7 if anything still vibrates.
+
+## 47. GLOBAL `#ink-wash` IS NOT SCALE-AGNOSTIC — §VII USES `#colophon-wash`
+
+The shared two-pass `#ink-wash` filter (large displacement scales) works on kanji and hanko-scale paths. Applied to a **~1–2 CSS pixel** hairline rule, the displacement **scatters** the stroke out of visibility — the rule "vanished" until diagnosed.
+
+**Shipped:** local `<filter id="colophon-wash">` inside the colophon rule SVG — `filterUnits="userSpaceOnUse"`, explicit region, single-pass turbulence + modest `feDisplacementMap` scale sized to the stroke. DrawSVGPlugin still drives the converge animation on `<path>` segments (not `<line>` — learning #44 still relevant for filters on lines).
+
+**DrawSVG registration:** `DrawSVGPlugin` is imported and registered in `colophon.js` only (with `ScrollTrigger`), not in `motion.js`. Only §VII uses it; avoids implying a global plugin dependency in the motion bootstrap.
+
+**MorphSVGPlugin** is not imported anywhere; crossfade pivot replaced morph long ago (learnings #35–#38).

@@ -13,6 +13,10 @@
   --ink-washi:     #F2ECDF;
   --ink-sumi:      #1A1613;
   --ink-ash:       #6B6259;
+  /* Fine mono / micro type on multiplied paper grain: darker than
+     --ink-ash so ~11px strokes stay legible; body background blend
+     hits thin grey before thicker sumi. */
+  --ink-meta:      #3F3934;
   --ink-hanko:     #8B1A1A;
   --ink-ember:     #7A3A1F;
 
@@ -22,6 +26,13 @@
   --ink-sumi-30:   rgba(26, 22, 19, 0.30);
   --ink-sumi-12:   rgba(26, 22, 19, 0.12);
   --ink-sumi-06:   rgba(26, 22, 19, 0.06);
+
+  /* Micro halo: separates glyph edges from body’s paper noise without
+     reading as glow. Used on .meta and other type-meta–scale labels. */
+  --shadow-fine-on-washi:
+    0 0 1px var(--ink-washi),
+    0 0 3px rgba(242, 236, 223, 0.92),
+    0 0 6px rgba(242, 236, 223, 0.55);
 
   /* ─── Typography ──────────────────────────────────────────
      Fraunces is variable on the opsz + wght axes. Use

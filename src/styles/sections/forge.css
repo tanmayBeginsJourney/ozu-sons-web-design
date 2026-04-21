@@ -49,7 +49,8 @@
   font-size: var(--type-meta);
   letter-spacing: var(--ls-meta);
   text-transform: uppercase;
-  color: var(--ink-ash);
+  color: var(--ink-meta);
+  text-shadow: var(--shadow-fine-on-washi);
   font-variant-numeric: tabular-nums;
   margin: 0;
 }
@@ -90,7 +91,8 @@
   font-size: var(--type-meta);
   letter-spacing: var(--ls-meta);
   text-transform: uppercase;
-  color: var(--ink-ash);
+  color: var(--ink-meta);
+  text-shadow: var(--shadow-fine-on-washi);
   margin: var(--space-3) 0 0;
   max-width: 40ch;
 }
@@ -143,7 +145,7 @@
    Hide stages 2–6 at first paint so pinned mode never shows
    stage 6 stacked on top of stage 1 before JS writes the
    initial hidden state. initForge re-writes opacity:0 inline
-   on stages 2–6 before threshold.js removes html.js-pending
+   on stages 2–6 before main.js releaseRevealGate() after initThreshold
    — after that the gate no longer matters and the inline
    styles carry the hidden state through to scroll. */
 

@@ -2,8 +2,8 @@
    lineage.js — §III motion.
 
    Three concerns, kept isolated:
-     1. Synchronous initial hidden state (runs BEFORE threshold.js
-        removes the html.js-pending gate — learning #24 ordering).
+     1. Synchronous initial hidden state (runs BEFORE main.js
+        releaseRevealGate() — learning #24 ordering).
         Each generation's head/name/role/quote are hidden inline;
         the hanko is pre-loaded with its scale:1.2 rotation:-6°
         overshoot start, so the settle animation has somewhere to
@@ -89,12 +89,11 @@ export function initLineage() {
   }
 
   // ─── Synchronous initial state ──────────────────────────────
-  // These gsap.set calls MUST run before threshold.js removes the
-  // html.js-pending CSS gate. main.js order is initPlace →
-  // initLineage → initThreshold, so when we run, the gate is still
-  // in force and our inline styles write the real hidden state
-  // beneath it. When threshold later removes the gate, inline
-  // styles outrank it and content stays hidden for the reveal.
+  // These gsap.set calls MUST run before main.js releaseRevealGate()
+  // drops the html.js-pending CSS gate. When we run, the gate is
+  // still in force and our inline styles write the real hidden state
+  // beneath it. After release, inline styles outrank the removed
+  // rule and content stays hidden for the reveal.
   generations.forEach((gen) => {
     const head = gen.querySelector(".lineage__head");
     const hanko = gen.querySelector(".lineage__hanko");

@@ -3,6 +3,27 @@
    Section-specific layout lives in its section's CSS module.
    ────────────────────────────────────────────────────────────── */
 
+/* Hide scrollbar gutter for a clean edge; scroll input unchanged. */
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
 /* ScrollSmoother requires the wrapper to be fixed with clipped overflow
    so content can be translated inside it. We only apply these rules
    after motion.js has confirmed ScrollSmoother actually initialized
@@ -10,6 +31,16 @@
    if JS fails, if the user prefers reduced motion, or if ScrollSmoother
    never calls through, the page still scrolls natively. Without this
    scoping the page gets trapped at one viewport height on failure. */
+/* Site content always stacks above the page grain (::before).
+   z-index only applies to positioned elements — baseline is
+   position:relative so this works when ScrollSmoother is off;
+   the [data-smoother="on"] rule upgrades to fixed without losing
+   the stacking order. */
+#smooth-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
 html[data-smoother="on"] #smooth-wrapper {
   position: fixed;
   inset: 0;
@@ -29,6 +60,41 @@ main {
 section {
   padding-inline: var(--gutter);
   position: relative;
+}
+
+/* ─── Page-wide paper grain ────────────────────────────────
+   Painted as a BODY BACKGROUND LAYER blended with --ink-washi,
+   not as ::before (avoids ALL stacking / z-index / pseudo
+   sibling ordering bugs with #smooth-wrapper + ScrollSmoother).
+
+   • background-color comes from typography.css (--ink-washi).
+   • background-image is the tiled SVG noise (base64 data URL).
+   • background-blend-mode: multiply — blends image WITH the
+     solid washi layer; no separate opacity stacking trap.
+   • background-attachment: fixed — grain stays viewport-locked
+     while long content scrolls (paper fibre doesn't slide with
+     paragraphs). Works because body is not transformed; GSAP
+     transforms live on #smooth-content, not an ancestor of the
+     body's background painting geometry.
+
+   Tunables: feColorMatrix lives inside the SVG; overall strength
+   is mostly this file's background-size + mobile tweak below. */
+/* Stronger noise: source SVG in repo at scripts/grain.svg; base64 in this
+   url() must be regenerated whenever that file changes. */
+body {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNDAiIGhlaWdodD0iMjQwIj48ZmlsdGVyIGlkPSJnIiBjb2xvci1pbnRlcnBvbGF0aW9uLWZpbHRlcnM9InNSR0IiPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjU1IiBudW1PY3RhdmVzPSIzIiBzZWVkPSI1IiBzdGl0Y2hUaWxlcz0ic3RpdGNoIiByZXN1bHQ9InJhdyIvPjxmZUNvbG9yTWF0cml4IGluPSJyYXciIHR5cGU9Im1hdHJpeCIgdmFsdWVzPSIwLjEyIDAuMTIgMC4xMiAwIDAgIDAuMSAwLjEgMC4xIDAgMCAgMC4wOCAwLjA4IDAuMDggMCAwICAwIDAgMCAwLjQ4IDAiLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjZykiLz48L3N2Zz4K");
+  background-size: 240px 240px;
+  background-repeat: repeat;
+  background-attachment: fixed;
+  background-blend-mode: multiply;
+}
+
+@media (max-width: 720px) {
+  body {
+    /* Slightly larger tile on small screens so grain doesn't
+       read heavier solely because the viewport is narrow. */
+    background-size: 260px 260px;
+  }
 }
 
 .container {

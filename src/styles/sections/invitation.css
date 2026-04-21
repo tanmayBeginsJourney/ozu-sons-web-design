@@ -12,11 +12,8 @@
    was considered and rejected; it would anchor §VI as a CTA
    poster, exactly the voice the monograph is avoiding.
 
-   Paper grain is heavier here than elsewhere on the page, scoped
-   to the section via ::before. Page-wide grain is Step 7's call
-   (see repo-state.md). The heavier grain is the reader's
-   perception of the letter being on slightly thicker stock — a
-   letter in the hand vs. an ambient backdrop.
+   Paper grain is site-wide on `body` (multiply blend; see layout.css
+   + repo-state.md). No local ::before grain on this section.
 
    Red discipline per learning #30 — the hanko is the page's
    SECOND and final red moment. The error text is --ink-sumi-60,
@@ -43,39 +40,28 @@
   flex-direction: column;
   gap: clamp(3rem, 8vh, 5rem);
 
-  /* New stacking context so the ::before grain's multiply
-     blend stays contained to this section and doesn't darken
-     §V's baseline cream above or §VII's rule below. */
-  isolation: isolate;
+  /* No isolation here. An earlier pass used `isolation:
+     isolate` to contain a local multiply-blend paper grain,
+     but that local grain has been retired (see note below)
+     and the page-wide grain on body::before must be able to
+     multiply THROUGH this section to reach its content. An
+     isolated stacking context would cut the blend off at §VI's
+     top face — §VI would snap back to flat cream while its
+     neighbours carry texture. If future §VI work needs a local
+     blend mode, re-add `isolation: isolate` and also reduce
+     the affected blend to compensate for the lost page-wide
+     layer within this section. */
 }
 
-/* Heavier paper grain, scoped to §VI. Inline SVG filter via
-   data URL so no network request. stitchTiles tiles the noise
-   seamlessly; 220px tile size is paper-fibre scale (smaller
-   reads as digital dither, larger reads as decorative texture).
-   mix-blend-mode: multiply darkens existing pixels the way ink
-   dries unevenly on textured paper — not a grey film painted
-   on top. opacity 0.12 is the heavier-than-page-wide setting;
-   Step 7 will set the page-wide baseline (likely ~0.06). */
-.invitation::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10  0 0 0 0 0.08  0 0 0 0 0.07  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
-  background-size: 220px 220px;
-  opacity: 0.12;
-  mix-blend-mode: multiply;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Content sits above the grain. Every direct child gets
-   z-index 1 — the ::before sits at z-index 0 inside the
-   isolation context. */
-.invitation > * {
-  position: relative;
-  z-index: 1;
-}
+/* §VI's local grain has been retired. The page-wide grain
+   now lives on body::before (layout.css) and carries the
+   paper-as-medium load for every section. §VI's previous
+   opacity-0.12 layer was tuned ASSUMING no page-wide layer
+   existed; stacking them would double-darken §VI and
+   disrupt red discipline (learning #30) by over-muting the
+   hanko stamp. If §VI ever wants a locally heavier stock
+   read, reintroduce with opacity ~0.04 so the TOTAL with
+   page-wide stays ~0.11 and the hanko's red doesn't dim. */
 
 /* ─── Letter ────────────────────────────────────────────────
    Authored visible; no scroll reveal (see §V rationale). Lede
@@ -298,7 +284,13 @@
   align-items: baseline;
   gap: 0.35em;
 
-  transition: color var(--dur-quick) var(--ease-ink);
+  transition:
+    color var(--dur-quick) var(--ease-ink),
+    transform var(--dur-instant) var(--ease-washi);
+}
+
+.invitation__submit:active {
+  transform: translateY(1px);
 }
 
 .invitation__submit:hover {

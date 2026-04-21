@@ -62,3 +62,5 @@ DevTools Performance → record a Memory profile. Scroll top-to-bottom, then bot
 ---
 
 Only move to the next section when the section passes this checkpoint.
+
+**Status:** §I–§VII have each been built under this ritual. Cross-section polish is **Step 7** (`handoff.md`), not another §6 pass per section.

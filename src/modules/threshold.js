@@ -57,8 +57,6 @@ export function initThreshold() {
   // ─── Reduced-motion path ─────────────────────────────────────
   // No timeline, no scrub, no breathing. Just final state.
   if (motion.prefersReducedMotion) {
-    // Release the CSS pre-reveal gate so content is visible immediately.
-    document.documentElement.classList.remove("js-pending");
     gsap.set(meta, { opacity: 1, y: 0 });
     gsap.set(split.words, {
       opacity: 1,
@@ -66,6 +64,7 @@ export function initThreshold() {
       clearProps: "clipPath,filter",
     });
     trace("reduced-motion → final state");
+    ScrollTrigger.refresh();
     return;
   }
 
@@ -88,13 +87,8 @@ export function initThreshold() {
     willChange: "clip-path, filter, transform, opacity",
   });
 
-  // ─── Release the pre-reveal CSS gate ─────────────────────────
-  // html.js-pending kept the animation targets at opacity 0 from the
-  // very first paint. Now that gsap.set has written the true initial
-  // state as inline styles (same opacity 0, but with transform + clip
-  // + filter baked in), releasing the gate is safe — inline styles
-  // outrank the CSS rule, so there's no visual change.
-  document.documentElement.classList.remove("js-pending");
+  // Pre-reveal gate (html.js-pending) is released from main.js after
+  // this init returns — see reveal-gate.js + learning #24.
 
   // ─── Entry timeline ──────────────────────────────────────────
   const tl = gsap.timeline({
@@ -106,7 +100,8 @@ export function initThreshold() {
   });
 
   // Meta labels arrive first — "the plaque attaches." 0.6s total across
-  // all four corners with a tiny 80ms stagger so they don't snap in unison.
+  // the three in-flow labels (serial + place + scroll) with a tiny 80ms
+  // stagger; the brand wordmark is the fixed chrome layer.
   tl.to(meta, {
     opacity: 1,       // 0 → 1, driven by the tween, not a fade class
     y: 0,             // 6px → 0, a quarter-em lift
@@ -319,4 +314,6 @@ export function initThreshold() {
       }),
     })
   );
+
+  ScrollTrigger.refresh();
 }

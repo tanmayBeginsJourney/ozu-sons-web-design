@@ -2,16 +2,15 @@
 
 LOCKED. Do not re-architect. Each section's specific refinements are captured below exactly as the user approved them.
 
-## Persistent UI layer — NOT YET BUILT (Step 7)
+## Persistent UI layer — BUILT (Step 7)
 
-Above all sections, OUTSIDE `#smooth-wrapper`:
+Implemented above all sections, OUTSIDE `#smooth-wrapper`, in `index.html` (`.app-chrome`) and `src/modules/chrome.js` / `src/styles/chrome.css`:
 
-- Top-left: "Ozu & Sons" wordmark, 10px mono, always visible.
-- Top-right: current chapter indicator ("II — The Place"), crossfades on section change.
-- Bottom: hair-thin sumi-ink scroll-progress rule, 1px, full width.
-- Ink-dot custom cursor (hidden on touch devices).
+- Top-left: "Ozu & Sons" wordmark (`.meta`), always visible.
+- Top-right: chapter label (`aria-live="polite"`), updates on scroll — picks the **last** section whose vertical span contains the viewport **midline**; while §IV is pinned, uses `.forge__inner`'s rect so V–VII can win when their copy is on screen (not the pin spacer).
+- Ink-dot cursor (halo + core, fine pointer / hover only) — `chrome-cursor-on` on `body` when enabled.
 
-Deferred to Step 7 polish — do NOT build inline during sections.
+Atmosphere: fullscreen WebGL ink-wash turbulence in `#atelier-dust` (Three.js shader, `atelier-dust.js` + `atelier-dust.css`) — fixed, `z-index: 2` above `#smooth-wrapper` (`z-index: 1`), below chrome (`--z-ui`). `mix-blend-mode: soft-light`; skipped when `prefers-reduced-motion`. Dynamically imported from `main.js` after `initMotion` to keep the main chunk smaller.
 
 ## §I — THRESHOLD   [BUILT + APPROVED]
 
@@ -133,7 +132,7 @@ CSS keys its pinned layout to a `.forge--pinned` class that `forge.js` adds ONLY
 
 ### MorphSVG / DrawSVG note
 
-MorphSVGPlugin is NOT USED in §IV. It stays imported in `motion.js` (carries no cost). DrawSVG likewise unused in §IV but remains imported for §VII's final rule draw-in. Do NOT rip them out to "clean up."
+MorphSVGPlugin is **not** used anywhere on the site and is **not** imported. **DrawSVGPlugin** is imported and registered only in `colophon.js` (with `ScrollTrigger`) for §VII's rule — not in `motion.js`. Do not move DrawSVG to `motion.js` unless multiple sections need it (avoids loading the plugin for pages that never scroll to §VII during dev — marginal, but keeps a single consumer clear).
 
 ## §V — THE PHILOSOPHY   [BUILT + APPROVED]
 
@@ -191,7 +190,7 @@ Why §V uniquely earns this affordance (§I–§IV do NOT):
 
 ### FOUC gate participation
 
-`initPhilosophy` slots into `main.js` BEFORE `initThreshold`. Its synchronous `gsap.set(sentence, { opacity: 0 })` runs before threshold.js removes `html.js-pending`. Per-word hidden state is written inside `fonts.ready`; the sentence container's inline `opacity: 0` covers the async wait window.
+`initPhilosophy` slots into `main.js` BEFORE `initThreshold`. Its synchronous `gsap.set(sentence, { opacity: 0 })` runs before `releaseRevealGate()`. Per-word hidden state is written inside `fonts.ready`; the sentence container's inline `opacity: 0` covers the async wait window.
 
 - Unique: the scroll-interruptible reveal (new pattern, reusable for §VII or any future full-viewport held-content reveal). Also unique: the absence of everything else — §V is the one section with zero ambient motion and no exit.
 
@@ -222,7 +221,7 @@ Error line (on invalid submit): "please check the email address and try again".
 - Vertical, LEFT-aligned, narrow-column (`max-width: var(--measure-normal)`). Centered composition was considered and rejected — it would anchor §VI as a CTA poster, exactly the voice the monograph is avoiding.
 - Letter at the top; comfortable gap down to the form; form mid-column. `display: flex; flex-direction: column; gap: clamp(3rem, 8vh, 5rem)`.
 - `min-height: 80svh`, `padding-block: clamp(6rem, 14vh, 10rem)` — a breath before §VII, without feeling like a separate screen.
-- Isolation context (`isolation: isolate`) so the heavier paper grain's multiply blend stays contained to this section and doesn't darken §V's baseline cream above or §VII's rule below.
+- **No** `isolation: isolate` — page-wide multiply grain on `body` must show through transparent regions; a local isolation stack would make §VI read flat while adjacent sections show fibre (retired with §VI's scoped `::before` grain layer).
 
 ### Letter prose — authored visible (no reveal)
 
@@ -283,11 +282,9 @@ On "invalid" submit: the baseline wobbles and a mono error line appears. Executi
 - `emailInput.addEventListener("input", clearError)` — correction is the reset, not another button. Input event fires on paste / autofill / programmatic clears too, all correct triggers.
 - Only the baseline wobbles; NOT the whole form. The ink "recoils" rather than chrome popping in — keeps the ink metaphor that the baseline has been the field's voice all along.
 
-### Paper grain — heavier, section-scoped
+### Paper grain — page-wide (historical note)
 
-`.invitation::before` renders a paper-grain layer via inline-SVG-`feTurbulence` data URL: `baseFrequency 1.4`, `numOctaves 2`, stitchTiles, `mix-blend-mode: multiply`, `opacity 0.12`. 220px tile size reads as paper fiber (smaller → digital dither, larger → decorative texture). Heavier than the page-wide baseline (Step 7 decides the global value, likely ~0.06). The perception is of a letter on slightly thicker stock — a letter in the hand, not an ambient backdrop.
-
-Narrow viewport (≤640px): grain opacity drops to 0.08 so the tile doesn't read as visually loud on smaller devices where it fills more of the visual field.
+Earlier builds used `.invitation::before` for a heavier local grain. **Current build:** one multiply grain on `body` site-wide (`layout.css` + `scripts/grain.svg`; learning #45). §VI inherits the same fibre as other sections; no duplicate grain layer.
 
 ### Layout class — success state (learning #39)
 
@@ -328,23 +325,51 @@ Until `.invitation--sent` is set, `.invitation__confirmation` is `opacity: 0; vi
 - **Do NOT remove `filterUnits="userSpaceOnUse"` from the baseline filter.** The whole line will vanish — see learning #44.
 - **Do NOT gate the confirmation with `html.js-pending`.** Progressive enhancement (learning #23) requires the form to work without JS; gating confirmation via the JS FOUC class would leave non-JS users at the unhid-confirmation state on a failed submit.
 
-## §VII — THE COLOPHON (not a footer)   [NOT YET BUILT]
+## §VII — THE COLOPHON (not a footer)   [BUILT + APPROVED]
+
+Static + motion approved. Closing typographic note — not a footer. §VI was the verb; §VII is the page turning closed.
+
+### Copy (locked, verbatim)
 
     "Set in Fraunces and Shippori Mincho B1.
      Composed in 2026 for Ozu & Sons, Sakai, Ōsaka."
 
-- Small 終 character centered below, faint.
-- One hair-thin sumi-ink rule above, 30% width, centered, draws in via DrawSVG (left-to-center + right-to-center meeting in middle).
-- The "no blade was photographed" meta-wink was CUT after critique — do NOT re-add it.
+### Composition
 
-## Step 7 — polish pass (after all 7 sections built)
+- **Centered** flex column (`text-align: center`, `align-items: center`). Only section where full centering is correct — printed matter's last page, not a letter (contrast §VI left column).
+- **No** `min-height` floor tying to half the viewport — section sizes from content + padding so the closing beat does not read as empty canvas (tuned post-review).
+- **Rule** — two `<path>` segments in an inline SVG (`viewBox="0 0 400 2"`), outer edges toward centre, converging at x=200. DrawSVGPlugin tween `drawSVG: "0% 0%"` → `"0% 100%"` per segment (`colophon.js`). **Not** global `#ink-wash`: that filter's displacement scale is tuned for kanji-sized geometry and shredded an early hairline build. Inline `<filter id="colophon-wash">` (`filterUnits="userSpaceOnUse"`, single-pass turbulence, small `scale`) — same ink *vocabulary*, correct magnitude (learning #47).
+- **Copy block** — Fraunces at reading scale (not `--type-meta`); two `<span>` lines preserve breaks.
+- **終** — `.ja` Shippori Mincho; `--ink-ash`; **no** `--ink-hanko` (learning #30). Larger than first-pass exploratory sizing; still a quiet signoff, not a stamp echo.
 
-- Typography refinement.
-- Motion timing audit.
-- Atmosphere: page-wide paper grain, persistent UI layer, ink-dot cursor.
-- Performance pass.
-- Minimum 3 new micro-interactions.
-- Refactor FOUC gate removal into `main.js` per learning #24.
+### Motion (single event)
+
+- Paused timeline; `ScrollTrigger` `start: "top 78%"`, `once: true` — earned-once, no replay on scroll-back (learning #41).
+- FOUC: `html.js-pending .colophon__rule-seg { opacity: 0 }`; synchronous `gsap.set` collapses draw + restores opacity before `releaseRevealGate()` in `main.js` (learning #24). Text and 終 never gated.
+- Reduced-motion: no DrawSVG tweens; CSS `@media (prefers-reduced-motion)` + short-circuit in JS show the fully drawn rule.
+- **Absent by design:** no text reveal, no 終 reveal, no ambient motion, no exit, no interaction, no red (learning #43).
+
+### Strict exclusions (unchanged)
+
+- No "no blade was photographed" line — cut after critique; do not re-add. No social links, email, copyright, build meta, or footer creep.
+
+## Step 7 — polish pass (all 7 sections built)
+
+**Remaining (in progress):**
+
+- Typography / motion timing audit (section-level flagged follow-ups in §I–§VII above).
+- Performance pass (WebGL layer already DPR-capped + visibility-paused; revisit only if profiling flags a hotspot).
+
+**Landed (Step 7, ongoing):**
+
+- FOUC gate release centralized: `src/modules/reveal-gate.js` (`releaseRevealGate()`), invoked from `main.js` immediately after `initThreshold()` — learning #24 refactor; `threshold.js` no longer removes `html.js-pending`.
+- Micro-interactions (3, beyond persistent UI + atelier dust): (1) chrome wordmark hover ink deepen (fine pointer / hover), (2) §VI submit `:active` typographic press (`invitation.css`), (3) chrome cursor "ink tap" on pointer press/release (`chrome.js` + `chrome.css`), fine-pointer only and skipped in reduced-motion.
+
+**Already shipped for Step 7 (tune / audit; do not re-build from zero):**
+
+- Persistent UI layer — see **Persistent UI layer** at top of this file (`src/modules/chrome.js`, `.app-chrome`).
+- Full-viewport WebGL atmospheric layer — `#atelier-dust` (`src/modules/atelier-dust.js`), soft-light blended; visibility tuned so slow drift reads against the page grain.
+- Page-wide multiply paper grain on `body`, `--ink-meta` + `--shadow-fine-on-washi` for fine mono on grain (learnings #45–#46). Step 7 may tune these, not introduce them from zero.
 
 Resize handling is already wired (landed during §IV 6c) — not a Step 7 task.
 

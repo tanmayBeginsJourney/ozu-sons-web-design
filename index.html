@@ -13,8 +13,9 @@
     <!--
       Synchronous pre-paint flag. CSS uses html.js-pending to hide
       animation targets BEFORE the first paint so there is no flash
-      of final-state content. JS removes the class once the reveal
-      timeline is queued. Reduced-motion path short-circuits in CSS.
+      of final-state content. JS removes the class after all section
+      inits queue synchronous hidden state (releaseRevealGate in main.js).
+      Reduced-motion path short-circuits in CSS.
     -->
     <script>
       document.documentElement.classList.add("js-pending");
@@ -226,8 +227,14 @@
     </svg>
 
     <!--
+      WebGL ink-wash turbulence (Three.js). soft-light blend; pointer-events
+      none. Below chrome, above scroll content — atmosphere, not a second story.
+    -->
+    <div id="atelier-dust" aria-hidden="true"></div>
+
+    <!--
       ScrollSmoother requires this wrapper/content pair. Fixed-position UI
-      (cursor, chapter frame, progress rule) will live OUTSIDE smooth-wrapper
+      (cursor, chapter frame) will live OUTSIDE smooth-wrapper
       so it does not scroll. Sections are appended into #smooth-content.
     -->
     <div id="smooth-wrapper">
@@ -244,7 +251,7 @@
             aria-labelledby="threshold-headline"
           >
             <div class="threshold__meta-row threshold__meta-row--top">
-              <p class="meta">Ozu &amp; Sons</p>
+              <span class="threshold__brand-slot" aria-hidden="true"></span>
               <p class="meta">No. 042</p>
             </div>
 
@@ -1116,53 +1123,98 @@
           >
             <h2 id="colophon-heading" class="visually-hidden">Colophon</h2>
 
-            <!-- Rule: two hair-thin sumi-ink segments that meet
-                 at x=200 (the viewBox midpoint). Authored as two
-                 <path>s (not a single <line>) so:
-                   (a) learning #44's filterUnits gotcha — <line>
-                       has zero geometric height so percentage-
-                       based filter regions collapse — does NOT
-                       apply here; each <path> has a 2D bounding
-                       box the default objectBoundingBox units
-                       handle correctly, and #ink-wash can be
-                       reused verbatim without a local filter.
-                   (b) 6c's DrawSVG "two pens meeting" motion has
-                       clean per-segment geometry: each segment
-                       collapses to the endpoint nearest the
-                       centre and draws out toward its far end
-                       simultaneously, landing on the midpoint
-                       together. A single <line> would require
-                       a "50%→50%" origin and draw in both
-                       directions from the same path, which is
-                       the same visual but less explicit.
-                 preserveAspectRatio="none" lets the 400×1 viewBox
-                 stretch to whatever column-proportional width
-                 colophon.css sets. Both segments share #ink-wash
-                 so the advancing draw edges read as ink, not as
-                 a UI divider — the two-pass turbulence and
-                 displacement already used by §II's kanji and
-                 §III/§VI's hanko stamps. -->
+            <!-- Rule: two sumi-ink segments that meet at x=200
+                 (the viewBox midpoint). Authored as two <path>s
+                 (not a single <line>) so 6c's DrawSVG "two pens
+                 meeting" motion has clean per-segment geometry:
+                 each segment collapses to the endpoint nearest
+                 the centre and draws out toward its far end
+                 simultaneously, landing on the midpoint together.
+
+                 Filter is LOCAL (#colophon-wash, defined inline
+                 below) rather than shared with the global
+                 #ink-wash. First pass used #ink-wash and the rule
+                 was invisible — #ink-wash's two-pass scale=14
+                 displacement was tuned for kanji-sized glyphs and
+                 turns a thin stroke into scattered pixels. The
+                 local filter below is authored at the stroke's
+                 own scale (single-pass turbulence, scale ~0.9)
+                 so the edge reads as ink-on-paper instead of
+                 disintegrating. Same ink vocabulary, correct
+                 magnitude.
+
+                 viewBox is 400×2 (not 400×1) to give vertical
+                 headroom for the thicker 1.2-unit stroke plus
+                 the filter's displacement. preserveAspectRatio
+                 ="none" stretches this to the CSS box. -->
             <svg
               class="colophon__rule"
-              viewBox="0 0 400 1"
+              viewBox="0 0 400 2"
               preserveAspectRatio="none"
               aria-hidden="true"
             >
-              <!-- Left segment: M 0 → L 200. 6c will collapse it
-                   to "100% 100%" (zero length at the end, i.e. at
-                   x=200) and draw to "0% 100%" (full length). -->
+              <!-- Local filter, scoped to §VII's rule only.
+                   Single-pass fractalNoise + displacement. Scale
+                   0.9 ≈ 0.75× the 1.2-unit stroke width, which
+                   is the right order of magnitude for "edge has
+                   a little ink grain" vs "stroke is shredded."
+                   baseFrequency 0.7 gives fine, paper-fibre-
+                   scale noise rather than chunky distortion.
+                   filterUnits="userSpaceOnUse" pins the filter
+                   region to the SVG's viewBox coordinates so a
+                   tiny-bbox path doesn't collapse the region
+                   (learning #44's principle, applied cleanly). -->
+              <defs>
+                <!-- userSpaceOnUse with absolute values in
+                     viewBox units. Region extends well past the
+                     stroke in all directions so displacement
+                     overshoot is never clipped. x=-10/width=420
+                     covers the full 400-unit horizontal span with
+                     room; y=-3/height=8 gives the y=1 stroke 4
+                     units of vertical overshoot either way — ~2×
+                     scale, plenty of headroom. -->
+                <filter
+                  id="colophon-wash"
+                  x="-10"
+                  y="-3"
+                  width="420"
+                  height="8"
+                  filterUnits="userSpaceOnUse"
+                  primitiveUnits="userSpaceOnUse"
+                >
+                  <feTurbulence
+                    type="fractalNoise"
+                    baseFrequency="0.7"
+                    numOctaves="2"
+                    seed="7"
+                    result="noise"
+                  />
+                  <feDisplacementMap
+                    in="SourceGraphic"
+                    in2="noise"
+                    scale="0.9"
+                    xChannelSelector="R"
+                    yChannelSelector="G"
+                  />
+                </filter>
+              </defs>
+
+              <!-- Both segments authored outer-edge → centre so a
+                   single symmetric DrawSVG tween (from "0% 0%" to
+                   "0% 100%") on each produces "two pens
+                   converging on the midpoint." y=1 is the
+                   vertical centre of the 400×2 viewBox. -->
+              <!-- Left segment: M 0 → L 200 -->
               <path
                 class="colophon__rule-seg colophon__rule-seg--left"
-                d="M 0 0.5 L 200 0.5"
+                d="M 0 1 L 200 1"
               />
-              <!-- Right segment: M 200 → L 400. 6c will collapse
-                   it to "0% 0%" (zero length at the start, i.e.
-                   at x=200) and draw to "0% 100%". Both segments'
-                   timelines share one tween so they resolve
-                   simultaneously at the midpoint. -->
+              <!-- Right segment: M 400 → L 200 (direction
+                   deliberately flipped so symmetric DrawSVG
+                   values produce the convergence). -->
               <path
                 class="colophon__rule-seg colophon__rule-seg--right"
-                d="M 200 0.5 L 400 0.5"
+                d="M 400 1 L 200 1"
               />
             </svg>
 
@@ -1193,6 +1245,27 @@
         </main>
       </div>
     </div>
+
+    <!--
+      Persistent UI (Step 7): fixed wordmark, chapter, ink-dot cursor.
+      Outside #smooth-wrapper so it does not move with ScrollSmoother.
+      "Ozu & Sons" lives here only — §I top row keeps No. 042 so the
+      four-corner stagger stays three beats.
+    -->
+    <aside class="app-chrome" aria-label="Site">
+      <div class="chrome__top">
+        <p class="chrome__wordmark meta">Ozu &amp; Sons</p>
+        <p class="chrome__chapter meta" aria-live="polite">
+          <span class="chrome__chapter-inner">I — The Threshold</span>
+        </p>
+      </div>
+      <div class="chrome__cursor" aria-hidden="true">
+        <span class="chrome__cursor-halo"></span>
+        <div class="chrome__cursor-glide">
+          <span class="chrome__cursor-core"></span>
+        </div>
+      </div>
+    </aside>
 
     <script type="module" src="/src/main.js"></script>
   </body>

@@ -44,7 +44,7 @@ Hushed, deliberate, scroll-reactive.
 
 ## Depth approach
 
-2.5D. Paper grain overlay everywhere (added at Step 7), ink-wash background layers at slow parallax, the knife rendered as six distinct SVG plates that crossfade under a scroll-pin (see `architecture.md` §IV for the pivot from MorphSVGPlugin to asset-crossfade; learnings #35–#38 for why).
+2.5D. Paper grain on the page surface — multiply-blended tiled noise on `body` (`layout.css` / `scripts/grain.svg`; learning #45). Persistent UI / parallax ink-wash layers may still land in polish (Step 7). The knife is six distinct raster/SVG plates crossfaded under a scroll-pin (see `architecture.md` §IV; learnings #35–#38).
 
 NO 3D library. NO canvas particles. NO WebGL.
 

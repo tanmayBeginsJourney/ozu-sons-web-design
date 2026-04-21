@@ -10,6 +10,8 @@
 @import "./reset.css";
 @import "./typography.css";
 @import "./layout.css";
+@import "./atelier-dust.css";
+@import "./chrome.css";
 
 /* ─── Sections (one file per section; order matches scroll order) ── */
 @import "./sections/threshold.css";

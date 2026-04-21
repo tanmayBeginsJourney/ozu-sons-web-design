@@ -75,12 +75,11 @@ export function initPlace() {
     return;
   }
 
-  // ─── Initial state (synchronous, runs before threshold.js
-  // removes js-pending so inline styles take precedence over the
-  // CSS gate) ──────────────────────────────────────────────────
+  // ─── Initial state (synchronous, runs before releaseRevealGate
+  // so inline styles take precedence over the CSS gate) ───────
   // Kanji SVG is visible (opacity 1) — its contents are hidden by
   // the mask circle at r=0. The SVG itself being visible prevents
-  // a flash when threshold removes the gate.
+  // a flash when the FOUC gate releases.
   gsap.set(kanjiSvg, { opacity: 1 });
   gsap.set(kanjiCircle, { attr: { r: 0 } });
 

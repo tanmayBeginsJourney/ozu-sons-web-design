@@ -167,7 +167,8 @@ html.js-pending .lineage__quote {
      tabular-nums so digits align vertically across all four
      generations when the eye scans down the column. */
   font-variant-numeric: tabular-nums;
-  color: var(--ink-ash);
+  color: var(--ink-meta);
+  text-shadow: var(--shadow-fine-on-washi);
   margin: 0;
 }
 

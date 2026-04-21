@@ -1,0 +1,130 @@
+/* ──────────────────────────────────────────────────────────────
+   chrome.css — persistent UI outside #smooth-wrapper (Step 7).
+   Wordmark, chapter indicator, ink-dot cursor.
+   pointer-events: none on the shell so §VI form stays clickable;
+   the cursor layer is non-interactive by design.
+   ────────────────────────────────────────────────────────────── */
+
+.app-chrome {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-ui);
+  pointer-events: none;
+  /* Safe areas + breathing room for wordmark / chapter */
+  padding-top: max(var(--space-5), env(safe-area-inset-top, 0));
+  padding-inline: max(var(--gutter), env(safe-area-inset-left, 0), env(safe-area-inset-right, 0));
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.chrome__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-4);
+}
+
+.chrome__wordmark {
+  margin: 0;
+  pointer-events: auto;
+  transition:
+    color var(--dur-breath) var(--ease-washi),
+    letter-spacing var(--dur-breath) var(--ease-washi),
+    text-shadow var(--dur-breath) var(--ease-washi),
+    transform var(--dur-instant) var(--ease-washi);
+}
+
+/* Stronger than the first pass: full sumi + tracked shift + lift so it
+   reads on grain (meta halo alone masked subtle color steps). */
+@media (hover: hover) and (pointer: fine) {
+  .chrome__wordmark:hover {
+    color: var(--ink-sumi);
+    letter-spacing: calc(var(--ls-meta) + 0.07em);
+    text-shadow:
+      0 0 1px var(--ink-washi),
+      0 0 4px rgba(242, 236, 223, 0.88);
+    transform: translateY(-1px);
+  }
+}
+
+.chrome__chapter {
+  margin: 0;
+  text-align: right;
+  max-width: min(55vw, 22rem);
+}
+
+.chrome__chapter-inner {
+  display: inline-block;
+  transition: letter-spacing 0.01s;
+}
+
+/* Cursor stack: halo lags (sumi ring), glide = core. */
+.chrome__cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  z-index: var(--z-cursor);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.chrome__cursor-halo {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+  border: 1px solid var(--ink-sumi-12);
+  opacity: 0.85;
+  mix-blend-mode: multiply;
+  box-shadow:
+    0 0 0 1px rgba(242, 236, 223, 0.35) inset,
+    0 0 12px rgba(26, 22, 19, 0.06);
+  transform-origin: center;
+}
+
+.chrome__cursor-glide {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  overflow: visible;
+  transform-origin: center;
+}
+
+.chrome__cursor-core {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 35%,
+    var(--ink-sumi-60) 0%,
+    var(--ink-sumi) 100%
+  );
+  opacity: 0.72;
+  mix-blend-mode: multiply;
+  box-shadow: 0 0 1px rgba(242, 236, 223, 0.9);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  body.chrome-cursor-on {
+    cursor: none;
+  }
+
+  body.chrome-cursor-on a,
+  body.chrome-cursor-on button,
+  body.chrome-cursor-on input,
+  body.chrome-cursor-on textarea,
+  body.chrome-cursor-on select {
+    cursor: none;
+  }
+}
+

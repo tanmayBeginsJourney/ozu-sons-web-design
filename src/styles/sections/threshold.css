@@ -40,6 +40,17 @@ html.js-pending .threshold__meta-row {
   gap: var(--space-4);
 }
 
+/* Top row: serial only — brand wordmark is the fixed chrome layer. */
+.threshold__meta-row--top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: baseline;
+}
+
+.threshold__meta-row--top .meta {
+  justify-self: end;
+}
+
 /* The middle row of the grid holds the headline. end-aligning it
    within that row places the colossus in the lower-third of the
    viewport — a title-page composition, not a centered hero. */
@@ -102,8 +113,8 @@ html.js-pending .threshold__meta-row {
 /* ─── Narrow viewports ─────────────────────────────────────────
    On phones the four-corner meta can feel cramped; stack the
    bottom row so "scroll ↓" sits under the place/date without
-   fighting for the same baseline. The top row stays side-by-side
-   because "Ozu & Sons" + "No. 042" always fits. */
+   fighting for the same baseline. The top row is a two-column
+   grid (slot + serial) so "No. 042" stays right-aligned. */
 @media (max-width: 480px) {
   .threshold__meta-row--bottom {
     flex-direction: column;

@@ -106,11 +106,11 @@ export function initPhilosophy() {
   }
 
   // ─── Synchronous initial state ──────────────────────────────
-  // Must run BEFORE threshold.js removes `html.js-pending`.
+  // Must run BEFORE main.js calls releaseRevealGate() after initThreshold.
   // The CSS gate keeps .philosophy__sentence at opacity 0 until
   // this inline gsap.set writes the same opacity as an inline
   // style; inline styles outrank the removed CSS rule, so
-  // threshold.js's end-of-init gate-removal causes no visible
+  // gate release causes no visible
   // change here. The sentence stays hidden while we wait for
   // fonts.ready — same pattern as §II's .place__prose container
   // (learning #24).

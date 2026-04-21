@@ -88,7 +88,7 @@
    page (learning #1).
 
    FOUC coordination (learning #24): stages 2–6 must carry an inline
-   opacity:0 BEFORE threshold.js removes html.js-pending at the end
+   opacity:0 BEFORE main.js releaseRevealGate() after initThreshold
    of its synchronous init. main.js calls initForge immediately
    before initThreshold; the synchronous gsap.set below satisfies
    that constraint.
@@ -256,7 +256,7 @@ export function initForge() {
   // unset and the page is on native scroll. Pinned layout CSS is
   // keyed off .forge--pinned (not the smoother attribute), so
   // leaving that class unset is all it takes to fall through to
-  // the contact sheet. threshold.js will remove html.js-pending
+  // the contact sheet. main.js releaseRevealGate() follows initThreshold.
   // at the end of its sync init; stages 2–6 have no inline hidden
   // styles from us, so they paint at their natural opacity 1 the
   // moment the gate lifts.
@@ -322,8 +322,8 @@ export function initForge() {
   section.classList.add("forge--pinned");
 
   // ─── Synchronous initial state ───────────────────────────────
-  // Write inline opacity:0 on stages 2–6 BEFORE threshold.js
-  // removes html.js-pending (learning #24). Stage 1 keeps the
+  // Write inline opacity:0 on stages 2–6 BEFORE releaseRevealGate()
+  // (learning #24). Stage 1 keeps the
   // natural opacity 1 — it's the first visible stage at pin
   // engage. The CSS gate already hid these at first paint; the
   // inline set extends that state past the gate removal.
@@ -372,8 +372,8 @@ export function initForge() {
   );
 
   // Initial state for stages 2–6: words lifted and hidden, note
-  // hidden. Done synchronously so it lands before threshold.js
-  // removes html.js-pending (learning #24). Stage 1's words/note
+  // hidden. Done synchronously so it lands before releaseRevealGate()
+  // (learning #24). Stage 1's words/note
   // stay at their natural CSS defaults — fully visible.
   for (let N = 2; N <= STAGE_COUNT; N += 1) {
     const idx = N - 1;

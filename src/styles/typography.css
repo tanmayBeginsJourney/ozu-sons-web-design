@@ -58,14 +58,17 @@ body {
   color: var(--ink-sumi);
 }
 
-/* Utility: tiny mono labels — years, serial numbers, meta. */
+/* Utility: tiny mono labels — years, serial numbers, meta.
+   --ink-meta + halo: --ink-ash on multiplied grain washed out
+   11px strokes; meta ink is deliberately darker. */
 .meta {
   font-family: var(--font-mono);
   font-size: var(--type-meta);
   font-weight: 400;
   letter-spacing: var(--ls-meta);
   text-transform: uppercase;
-  color: var(--ink-ash);
+  color: var(--ink-meta);
+  text-shadow: var(--shadow-fine-on-washi);
 }
 
 /* Utility: Japanese characters (mincho serif). */

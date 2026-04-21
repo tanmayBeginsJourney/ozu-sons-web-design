@@ -30,25 +30,29 @@ import { initLineage } from "./modules/lineage.js";
 import { initForge } from "./modules/forge.js";
 import { initPhilosophy } from "./modules/philosophy.js";
 import { initInvitation } from "./modules/invitation.js";
+import { initColophon } from "./modules/colophon.js";
+import { initChrome } from "./modules/chrome.js";
+import { releaseRevealGate } from "./modules/reveal-gate.js";
 
 initMotion();
+// Three.js is ~600kb; load async so first paint stays light.
+import("./modules/atelier-dust.js").then((m) => m.initAtelierDust());
 
 // Order matters: every section module EXCEPT initThreshold must
-// run BEFORE initThreshold. Each module's synchronous gsap.set
+// run BEFORE initThreshold. initChrome runs after colophon (FOUC-
+// safe) and before threshold — it registers ScrollTriggers for
+// chapter/cursor; threshold ends with ScrollTrigger.refresh()
+// so metrics include §I SplitText. Each section module's synchronous gsap.set
 // writes inline opacity:0 (and related initial-state styles) on
-// its pre-reveal targets. threshold.js's init removes the
-// html.js-pending CSS gate at the end of its synchronous run —
-// so by that moment, §II, §III, §IV, and §V targets must already
-// carry their inline hidden styles, or they flash at final
-// opacity for the frame between "gate removed" and the deferred
-// font-ready paths that build per-word/line SplitText states.
-//
-// This ordering constraint is load-bearing and fragile; see
-// learning #24 for the Step 7 refactor that moves gate removal
-// out into main.js so section modules don't need to coordinate.
+// its pre-reveal targets. releaseRevealGate() runs immediately after
+// initThreshold() so the html.js-pending CSS gate drops only once
+// every section has queued its synchronous hidden state (learning #24).
 initPlace();
 initLineage();
 initForge();
 initPhilosophy();
 initInvitation();
+initColophon();
+initChrome();
 initThreshold();
+releaseRevealGate();
