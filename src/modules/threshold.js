@@ -91,11 +91,17 @@ export function initThreshold() {
   // this init returns — see reveal-gate.js + learning #24.
 
   // ─── Entry timeline ──────────────────────────────────────────
+  let revealStarted = false;
+  let interrupted = false;
+
   const tl = gsap.timeline({
     // Small pre-roll so the first frame isn't the reveal; lets the
     // page settle + fonts lock before anything moves.
     delay: 0.15,
-    onStart: () => trace("timeline started"),
+    onStart: () => {
+      revealStarted = true;
+      trace("timeline started");
+    },
     onComplete: () => trace("timeline complete"),
   });
 
@@ -132,6 +138,8 @@ export function initThreshold() {
   const ENV_MIN = 0.6;
   const ENV_MAX = 1.6;
   const OVERLAP = 0.45;
+  const FF_DURATION = 0.12;
+  const FF_STAGGER = 0.04;
 
   const wordsAnchor = "wordsStart";
   // "-=0.5" keeps the original braid: words start 0.1s into the 0.6s
@@ -189,6 +197,73 @@ export function initThreshold() {
           `${w.textContent}[env=${envelopes[i].toFixed(2)}s @${onsets[i].toFixed(2)}s]`
       )
       .join(" · ")
+  );
+
+  // Scroll-interruptible fast-forward: if the reader scrolls past the
+  // headline midpoint while the reveal timeline is still running,
+  // remaining words snap to final state so pacing respects user intent.
+  const wordsStartTime = tl.labels[wordsAnchor];
+
+  const fastForwardReveal = () => {
+    if (interrupted || !revealStarted) return;
+    if (tl.progress() >= 1) return;
+    interrupted = true;
+
+    tl.pause();
+    gsap.killTweensOf(split.words);
+
+    const revealTime = tl.time();
+    const remaining = [];
+    split.words.forEach((word, i) => {
+      const wordEnd = wordsStartTime + onsets[i] + envelopes[i];
+      if (revealTime < wordEnd) remaining.push(word);
+    });
+
+    trace(
+      "timeline interrupted by scroll → fast-forward",
+      remaining.length,
+      "remaining words"
+    );
+
+    if (remaining.length === 0) {
+      gsap.set(split.words, {
+        clearProps: "clipPath,filter,willChange,transform,opacity",
+      });
+      return;
+    }
+
+    gsap.to(remaining, {
+      opacity: 1,
+      yPercent: 0,
+      clipPath: "inset(-0.5em -8% -0.5em -8%)",
+      filter: "url(#ink-bleed) blur(0px)",
+      duration: FF_DURATION,
+      stagger: FF_STAGGER,
+      ease: "power2.out",
+      onComplete: () => {
+        gsap.set(split.words, {
+          clearProps: "clipPath,filter,willChange,transform,opacity",
+        });
+        trace("fast-forward complete");
+      },
+    });
+  };
+
+  registerTrigger(
+    ScrollTrigger.create({
+      trigger: section,
+      start: "top bottom",
+      end: "bottom top",
+      onUpdate: () => {
+        if (interrupted || !revealStarted) return;
+        if (tl.progress() >= 1) return;
+
+        const rect = headline.getBoundingClientRect();
+        const headlineMid = rect.top + rect.height / 2;
+        const viewportMid = window.innerHeight / 2;
+        if (headlineMid < viewportMid) fastForwardReveal();
+      },
+    })
   );
 
   // ─── Idle-reactive breathing ─────────────────────────────────
