@@ -244,7 +244,7 @@ html.js-pending .forge__caption[data-stage]:not([data-stage="1"]) {
 
 .forge--pinned .forge__inner {
   display: grid;
-  grid-template-columns: [cap] minmax(0, 1fr) [plate] minmax(0, 1.4fr);
+  grid-template-columns: [cap] minmax(24rem, 1.1fr) [plate] minmax(0, 1.3fr);
   grid-template-rows: 1fr;
   column-gap: var(--space-8);
   row-gap: 0;
@@ -314,11 +314,11 @@ html.js-pending .forge__caption[data-stage]:not([data-stage="1"]) {
    22ch so lines break in meaningful places ("1450°C," / "folded
    over and over.") rather than mid-phrase. */
 .forge--pinned .forge__caption-line {
-  font-size: clamp(1.75rem, 2.4vw, 2.5rem);
+  font-size: clamp(1.45rem, 2vw, 2.2rem);
   font-variation-settings: "opsz" 30, "wght" 380;
   line-height: var(--lh-snug);
   letter-spacing: var(--ls-tight);
-  max-width: 22ch;
+  max-width: 24ch;
 }
 
 .forge--pinned .forge__caption-note {

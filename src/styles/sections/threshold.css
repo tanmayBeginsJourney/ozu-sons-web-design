@@ -13,7 +13,7 @@
   min-height: 100svh;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  padding-block: var(--space-6);
+  padding-block: clamp(var(--space-3), 5vh, var(--space-6));
 }
 
 /* Pre-reveal state. The inline <script> in <head> adds html.js-pending
@@ -57,11 +57,13 @@ html.js-pending .threshold__meta-row {
 .threshold__stage {
   display: flex;
   align-items: end;
-  padding-block-start: var(--space-10);
+  padding-block-start: clamp(var(--space-5), 10vh, var(--space-10));
 }
 
 .threshold__headline {
-  /* Inherits sizing from .colossus; this scope owns only layout. */
+  /* Scale down earlier than the global colossus token so section I
+     keeps its intended two authored lines across common zoom ranges. */
+  font-size: clamp(3.6rem, 10.4vw, 11rem);
   color: var(--ink-sumi);
   margin: 0;
 }
@@ -72,6 +74,12 @@ html.js-pending .threshold__meta-row {
    animate over without re-splitting lines. */
 .threshold__line {
   display: block;
+}
+
+@media (max-width: 1500px) {
+  .threshold__headline {
+    font-size: clamp(3.1rem, 8.8vw, 9rem);
+  }
 }
 
 /* SplitText wraps each word in <span class="threshold__word">.
